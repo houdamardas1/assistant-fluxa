@@ -49,3 +49,5 @@ test_permission.txt
 data/test_rbac_*.txt
 data/test_rbac_*.json
 data/eval/*.bak
+
+data/audit.db
