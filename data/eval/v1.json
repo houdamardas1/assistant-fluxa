@@ -1,0 +1,302 @@
+{
+  "description": "Jeu de questions de reference. statut='verifie' : valeurs confirmees par des executions reelles ; statut='a_verifier' : mode et source attendus deduits du corpus, a confirmer puis corriger avec la reponse reelle des documents. Ajoutez vos propres cas.",
+  "cas": [
+    {
+      "id": "wafa_ca_2025",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "12 738"
+      ],
+      "expected_departement": "finance"
+    },
+    {
+      "id": "wafa_ca_social_2025",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quel est le chiffre d'affaires social de Wafa Assurance en 2025 ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "12 738"
+      ]
+    },
+    {
+      "id": "wafa_primes_consolidees_2025",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quelles sont les primes émises consolidées de Wafa Assurance en 2025 ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "15 226"
+      ]
+    },
+    {
+      "id": "wafa_comparatif_ca_primes",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Compare le chiffre d'affaires social et les primes émises consolidées de Wafa Assurance en 2025",
+      "expected_mode": "MULTI_INTENT",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "12 738",
+        "15 226",
+        "2488"
+      ]
+    },
+    {
+      "id": "wafa_ca_direction",
+      "role": "direction",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "12 738"
+      ]
+    },
+    {
+      "id": "wafa_ca_tous",
+      "role": "tous",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "12 738"
+      ]
+    },
+    {
+      "id": "wafa_resultat_net_2025",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025 ?",
+      "expected_mode": ["RAG", "CLARIFICATION"],
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf"
+    },
+    {
+      "id": "wafa_resultat_net_2025_social_vs_consolide",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025, sans préciser le périmètre ?",
+      "expected_mode": "CLARIFICATION",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf"
+    },
+    {
+      "id": "wafa_ca_annee_absente",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2030 ?",
+      "expected_mode": "ABSENT"
+    },
+    {
+      "id": "wafa_resultat_net_1999",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le résultat net de Wafa Assurance en 1999 ?",
+      "expected_mode": "ABSENT"
+    },
+    {
+      "id": "cdg_resultat_net",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le résultat net consolidé de CDG Capital ?",
+      "expected_mode": "RAG"
+    },
+    {
+      "id": "unimer_conseil_admin",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "expected_mode": "RAG",
+      "expected_source": "UNIMER_RFA_2024.pdf",
+      "expected_contains": [
+        "HASSAR"
+      ],
+      "expected_departement": "direction"
+    },
+    {
+      "id": "unimer_gouvernance",
+      "role": "direction",
+      "statut": "a_verifier",
+      "question": "Quelle est la gouvernance d'Unimer ?",
+      "expected_mode": "RAG",
+      "expected_source": "UNIMER_RFA_2024.pdf"
+    },
+    {
+      "id": "rh_conges_annuels",
+      "role": "rh",
+      "statut": "verifie",
+      "question": "Combien de jours de congés annuels ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf",
+      "expected_departement": "rh",
+      "expected_not_contains": [
+        "France",
+        "35 heures"
+      ]
+    },
+    {
+      "id": "rh_periode_essai",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Quelle est la durée de la période d'essai ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf",
+      "expected_departement": "rh"
+    },
+    {
+      "id": "rh_licenciement",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Quelles sont les règles du licenciement ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf"
+    },
+    {
+      "id": "rh_bulletin_paie",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Que dit le Code du travail sur le bulletin de paie ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf"
+    },
+    {
+      "id": "tous_loi_travail",
+      "role": "tous",
+      "statut": "verifie",
+      "question": "Que dit la loi sur le travail ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf"
+    },
+    {
+      "id": "it_mots_de_passe",
+      "role": "it",
+      "statut": "verifie",
+      "question": "Que dit la DNSSI sur la sécurité des mots de passe ?",
+      "expected_mode": "RAG",
+      "expected_source": "DNSSI_Directive_Securite_SI.pdf",
+      "expected_departement": "it"
+    },
+    {
+      "id": "it_sauvegardes",
+      "role": "it",
+      "statut": "verifie",
+      "question": "Quelles sont les exigences de sauvegarde selon la DNSSI ?",
+      "expected_mode": "RAG",
+      "expected_source": "DNSSI_Directive_Securite_SI.pdf"
+    },
+    {
+      "id": "it_incidents",
+      "role": "it",
+      "statut": "a_verifier",
+      "question": "Que dit la DNSSI sur la gestion des incidents de sécurité ?",
+      "expected_mode": "RAG",
+      "expected_source": "DNSSI_Directive_Securite_SI.pdf"
+    },
+    {
+      "id": "jur_clauses_abusives",
+      "role": "juridique",
+      "statut": "a_verifier",
+      "question": "Que dit le Code des obligations sur les clauses abusives ?",
+      "expected_mode": "RAG",
+      "expected_source": "Loi_31-08_Protection_Consommateur.pdf",
+      "expected_departement": "juridique"
+    },
+    {
+      "id": "jur_formation_contrat",
+      "role": "juridique",
+      "statut": "a_verifier",
+      "question": "Que dit le Code des obligations et des contrats sur la formation du contrat ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_Obligations_Contrats_DOC.pdf"
+    },
+    {
+      "id": "acces_rh_vers_finance",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "expected_mode": "HORS_PERIMETRE",
+      "expected_not_contains": [
+        "12 738"
+      ]
+    },
+    {
+      "id": "acces_it_vers_direction",
+      "role": "it",
+      "statut": "a_verifier",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "expected_mode": "HORS_PERIMETRE",
+      "expected_not_contains": [
+        "HASSAR"
+      ]
+    },
+    {
+      "id": "acces_finance_vers_direction",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "expected_mode": "HORS_PERIMETRE",
+      "expected_not_contains": [
+        "HASSAR"
+      ]
+    },
+    {
+      "id": "acces_finance_vers_commerce",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quels sont les tarifs ?",
+      "expected_mode": "HORS_PERIMETRE",
+      "expected_departement": "commerce"
+    },
+    {
+      "id": "acces_rh_vers_juridique",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Que dit le Code des obligations sur les clauses abusives ?",
+      "expected_mode": "HORS_PERIMETRE"
+    },
+    {
+      "id": "acces_marketing_vers_finance",
+      "role": "marketing",
+      "statut": "a_verifier",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025 ?",
+      "expected_mode": "HORS_PERIMETRE"
+    },
+    {
+      "id": "acces_finance_vers_auto_nejma",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires d'Auto Nejma ?",
+      "expected_mode": "HORS_PERIMETRE"
+    },
+    {
+      "id": "general_inflation",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Qu'est-ce que l'inflation ?",
+      "expected_mode": "GENERAL"
+    },
+    {
+      "id": "general_capitale",
+      "role": "tous",
+      "statut": "a_verifier",
+      "question": "Quelle est la capitale du Maroc ?",
+      "expected_mode": "GENERAL"
+    },
+    {
+      "id": "robustesse_entite_inconnue",
+      "role": "finance",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires d'Apple en 2025 ?",
+      "expected_mode": "ABSENT",
+      "expected_not_contains": [
+        "12 738"
+      ]
+    }
+  ]
+}

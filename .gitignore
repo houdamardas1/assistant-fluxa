@@ -1,0 +1,51 @@
+﻿# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Donnees lourdes
+data/index/
+data/raw/
+*.faiss
+
+# Rapports d'evaluation (garder v1.json et BASELINE_v4.json)
+data/eval/eval_*.json
+!data/eval/v1.json
+!data/eval/BASELINE_v4.json
+
+# Archives
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Backups et brouillons
+*.bak_*
+*_backup_*
+*_sauvegarde.py
+*_v1_stable.py
+check_encoding*.py
+diagnose_extraction*.py
+diagnose_ranking.py
+dump_p*.py
+inspect_*.py
+test_p*.py
+test_extraction.py
+test_permission.txt
+
+# Rapports de test et backups
+data/test_rbac_*.txt
+data/test_rbac_*.json
+data/eval/*.bak
