@@ -1,51 +1,42 @@
-﻿# Core
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-python-dotenv==1.0.0
+﻿# ============================================================
+# Morocco Enterprise Intelligence Platform - Requirements
+# ============================================================
 
-# Database
-sqlalchemy==2.0.23
-asyncpg==0.29.0
-alembic==1.12.1
+# --- Web framework ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.9
+pydantic-settings>=2.0
 
-# Azure
-azure-identity==1.15.0
-azure-storage-blob==12.19.0
-azure-search-documents==11.4.0
-azure-keyvault-secrets==4.7.0
-openai==1.3.0
+# --- Authentication (JWT) ---
+pyjwt>=2.8
+cryptography>=41.0
 
-# Data Processing
-pandas==2.1.3
-numpy==1.26.2
-pypdf2==3.0.1
-pdfplumber==0.10.3
-pytesseract==0.3.10
-langchain==0.0.340
-langchain-community==0.0.10
-PyMuPDF==1.23.8
-aiofiles==23.2.1
+# --- RAG / LLM ---
+groq>=0.11
+sentence-transformers>=2.2
+faiss-cpu>=1.7
+numpy>=1.24
+python-dotenv>=1.0
 
-# Analytics
-scikit-learn==1.3.2
-scipy==1.11.4
-statsmodels==0.14.0
-prophet==1.1.5
+# --- HTTP client ---
+httpx>=0.27
 
-# Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
+# --- Tests ---
+pytest>=8.0
 
-# Monitoring
-opentelemetry-api==1.21.0
-opentelemetry-sdk==1.21.0
-opentelemetry-instrumentation-fastapi==0.42b0
+# --- PDF (ingestion) ---
+PyMuPDF>=1.23
+pypdf2>=3.0
 
-# Utils
-httpx==0.25.1
-tenacity==8.2.3
-celery==5.3.4
-redis==5.0.1
-requests==2.31.0
+# ============================================================
+# Optionnel (decommenter au besoin)
+# ============================================================
+
+# --- Database (pour migration PostgreSQL future) ---
+# sqlalchemy>=2.0
+# asyncpg>=0.29
+
+# --- Analytics (pour KPI, trends, forecasting) ---
+# pandas>=2.0
+# scikit-learn>=1.3
