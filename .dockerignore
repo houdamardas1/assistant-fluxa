@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gitattributes
+.env
+.env.*
+!.env.example
+data/
+tests/
+**/__pycache__/
+*.pyc
+*.zip
+*.bak*
+assistant_legacy.py
