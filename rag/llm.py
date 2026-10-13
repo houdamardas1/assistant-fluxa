@@ -2,6 +2,7 @@
 
 import os
 import sys
+
 from groq import Groq
 from groq import RateLimitError
 
@@ -24,7 +25,16 @@ def _init_groq() -> Groq:
         )
         sys.exit(1)
 
-    return Groq(api_key=api_key)
+    # Nouvelles tentatives automatiques du SDK sur 429 / 5xx (avec attente).
+    # Defaut 2 = valeur du SDK. Avec un plafond de 8 000 tokens par minute,
+    # une question RAG (~7 000 tokens) peut buter sur la limite par minute :
+    # GROQ_MAX_RETRIES=8 laisse la fenetre se vider au lieu d'echouer.
+    try:
+        max_retries = max(0, int(os.getenv("GROQ_MAX_RETRIES", "2")))
+    except ValueError:
+        max_retries = 2
+
+    return Groq(api_key=api_key, max_retries=max_retries)
 
 
 groq_client = _init_groq()

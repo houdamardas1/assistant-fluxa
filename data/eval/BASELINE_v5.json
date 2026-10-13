@@ -1,0 +1,769 @@
+{
+  "label": "v5-baseline",
+  "date": "2026-10-13T00:22:19",
+  "jeu_de_donnees": "data/eval/v1.json",
+  "configuration": {
+    "groq_model": "openai/gpt-oss-120b",
+    "groq_verify_model": "openai/gpt-oss-120b",
+    "verify_chars": 1200,
+    "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+    "top_k_retrieval": 30,
+    "top_k_verify": 15,
+    "top_k_context": 10,
+    "poids_faiss": 0.5,
+    "poids_lexical": 0.5,
+    "seuil_detection_departement": 2,
+    "seuil_embedding_departement": 0.45,
+    "marge_embedding_departement": 0.05
+  },
+  "complet": true,
+  "sources": [
+    "eval_v5-modules_20261011_150516.json",
+    "eval_v5-a_20261011_150911.json",
+    "eval_v5-a_20261012_191418.json",
+    "eval_v5-b_20261011_150949.json",
+    "eval_v5-b_20261012_192151.json",
+    "eval_v5-c_20261011_151039.json",
+    "eval_v5-c_20261012_192216.json",
+    "eval_v5-d_20261012_194928.json"
+  ],
+  "resume": {
+    "nb_cas": 33,
+    "nb_erreurs": 0,
+    "nb_non_evalues": 0,
+    "taux_reussite": 97.0,
+    "exactitude_mode": 97.0,
+    "retrieval_hit": 100.0,
+    "contexte_hit": 100.0,
+    "exactitude_contenu": 100.0,
+    "citations": 100.0,
+    "refus_corrects": 100.0,
+    "faux_refus": 0.0,
+    "latence_moyenne_s": 11.41,
+    "latence_p95_s": 48.42
+  },
+  "cas": [
+    {
+      "id": "wafa_ca_2025",
+      "role": "finance",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "departement": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 11.08,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Chiffre d'affaires 2025 : 12 738 MDH [Source 1]",
+      "erreur": null
+    },
+    {
+      "id": "wafa_ca_social_2025",
+      "role": "finance",
+      "question": "Quel est le chiffre d'affaires social de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 6.35,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Chiffre d'affaires social 2025 : 12 738 MDH [Source 1]",
+      "erreur": null
+    },
+    {
+      "id": "wafa_primes_consolidees_2025",
+      "role": "finance",
+      "question": "Quelles sont les primes émises consolidées de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 3.6,
+      "confiance": 0.98,
+      "departement": "finance",
+      "reponse": "Primes émises consolidées en 2025 : 15 226 MDH [Source 1]",
+      "erreur": null
+    },
+    {
+      "id": "wafa_comparatif_ca_primes",
+      "role": "finance",
+      "question": "Compare le chiffre d'affaires social et les primes émises consolidées de Wafa Assurance en 2025",
+      "attendus": [
+        "MULTI_INTENT"
+      ],
+      "mode": "MULTI_INTENT",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 17.3,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Chiffre d'affaires (social) :\nChiffre d’affaires social de Wafa Assurance en 2025 : 12 738 MDH [Source 1]\n\nPrimes émises (consolidé) :\nPrimes émises consolidées en 2025 : 15 226 MDH [Source 2]\n\nDifférence calculée : 2488 MDH.\nAttention : il ne s'agit pas d'une comparaison homogène, car ce sont deux indicateurs comptables distincts, avec des périmètres potentiellement différents. Cette différence n'a de sens que si vous comparez explicitement ces deux notions précises.",
+      "erreur": null
+    },
+    {
+      "id": "wafa_ca_direction",
+      "role": "direction",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 5.21,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Chiffre d'affaires 2025 : 12 738 MDH (social) [Source 1]",
+      "erreur": null
+    },
+    {
+      "id": "wafa_ca_tous",
+      "role": "tous",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 3.43,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Chiffre d'affaires 2025 : 12 738 MDH (exercice social) [Source 1]",
+      "erreur": null
+    },
+    {
+      "id": "wafa_resultat_net_2025",
+      "role": "finance",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "RAG",
+        "CLARIFICATION"
+      ],
+      "mode": "CLARIFICATION",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 0.71,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Précision nécessaire\n\nLes documents disponibles contiennent à la fois des valeurs sociales et des valeurs consolidées pour cet indicateur, et ces valeurs sont différentes.\n\nSouhaitez-vous le périmètre social ou le périmètre consolidé ? Reformulez votre question en le précisant.",
+      "erreur": null
+    },
+    {
+      "id": "wafa_resultat_net_2025_social_vs_consolide",
+      "role": "finance",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025, sans préciser le périmètre ?",
+      "attendus": [
+        "CLARIFICATION"
+      ],
+      "mode": "CLARIFICATION",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 0.77,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Précision nécessaire\n\nLes documents disponibles contiennent à la fois des valeurs sociales et des valeurs consolidées pour cet indicateur, et ces valeurs sont différentes.\n\nSouhaitez-vous le périmètre social ou le périmètre consolidé ? Reformulez votre question en le précisant.",
+      "erreur": null
+    },
+    {
+      "id": "wafa_ca_annee_absente",
+      "role": "finance",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2030 ?",
+      "attendus": [
+        "ABSENT"
+      ],
+      "mode": "ABSENT",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.48,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Je ne dispose pas actuellement d'informations suffisantes dans les documents disponibles pour répondre précisément à cette question.\n\nAfin de garantir une réponse fiable, je préfère ne pas fournir d'information qui ne pourrait pas être vérifiée.",
+      "erreur": null
+    },
+    {
+      "id": "wafa_resultat_net_1999",
+      "role": "finance",
+      "question": "Quel est le résultat net de Wafa Assurance en 1999 ?",
+      "attendus": [
+        "ABSENT"
+      ],
+      "mode": "ABSENT",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.62,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Je ne dispose pas actuellement d'informations suffisantes dans les documents disponibles pour répondre précisément à cette question.\n\nAfin de garantir une réponse fiable, je préfère ne pas fournir d'information qui ne pourrait pas être vérifiée.",
+      "erreur": null
+    },
+    {
+      "id": "cdg_resultat_net",
+      "role": "finance",
+      "question": "Quel est le résultat net consolidé de CDG Capital ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "citations": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 2.09,
+      "confiance": 0.98,
+      "departement": "finance",
+      "reponse": "Le résultat net consolidé (résultat net part du groupe) de CDG Capital s’élève à 159,8 millions de dirhams pour l’exercice clos en décembre 2024 [Source 1].",
+      "erreur": null
+    },
+    {
+      "id": "unimer_conseil_admin",
+      "role": "direction",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "contenu": true,
+        "departement": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 25.54,
+      "confiance": 0.97,
+      "departement": "direction",
+      "reponse": "Conseil d’administration d’Unimer :\n\n- Président du Conseil d’administration : Mohamed Saad HASSAR [Source 2]  \n- Administrateur Directeur Général : Mehdi ALJ [Source 1]  \n- Administrateur : Mohamed HASSAR [Source 5]  \n- Administrateur : Mouncef KABBAJ [Source 5]  \n- Administratrice : Noura ALJ [Source 5]  \n- Administrateur : Abdellatif GUERAOUI [Source 5]  \n- Administrateur : Yahia CHRAIBI [Source 5]  \n- Administrateur : Thierry VANELLI [Source 5]  \n- Administratrice : Kristell GUIZOUARN [Source 5]  \n- Administrateur : Jalil BEN WAHHOUD [Source 5]  \n\nMandats supplémentaires détenus par les me",
+      "erreur": null
+    },
+    {
+      "id": "unimer_gouvernance",
+      "role": "direction",
+      "question": "Quelle est la gouvernance d'Unimer ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 50.03,
+      "confiance": 0.97,
+      "departement": "direction",
+      "reponse": "Gouvernance d’Unimer :\n\n- Conseil d’Administration (CA) : organe décisionnel principal qui définit les orientations stratégiques, approuve les comptes semestriels et annuels, les informations aux actionnaires et les rapports des comités spécialisés, ainsi que les rapports réglementaires [Source 1].\n\n- Composition du CA : diversité et complémentarité des compétences (finance, industrie, RSE, logistique, marketing, informatique, énergie, stratégie, risque, RH/social, direction générale). Chaque administrateur est nommé pour son expertise dans ces domaines clés [Source 3].\n\n- Comités spécialisés ",
+      "erreur": null
+    },
+    {
+      "id": "rh_conges_annuels",
+      "role": "rh",
+      "question": "Combien de jours de congés annuels ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "ABSENT",
+      "verifs": {
+        "mode": false,
+        "interdit": true,
+        "departement": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": false,
+      "latence_s": 28.3,
+      "confiance": 0.9,
+      "departement": "rh",
+      "reponse": "Je ne dispose pas actuellement d'informations suffisantes dans les documents disponibles pour répondre précisément à cette question.\n\nAfin de garantir une réponse fiable, je préfère ne pas fournir d'information qui ne pourrait pas être vérifiée.",
+      "erreur": null
+    },
+    {
+      "id": "rh_periode_essai",
+      "role": "rh",
+      "question": "Quelle est la durée de la période d'essai ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "departement": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 2.77,
+      "confiance": 0.97,
+      "departement": "rh",
+      "reponse": "Durée de la période d'essai :\n\n- Contrats à durée indéterminée (CDI) :\n  - Cadres et assimilés : trois mois, renouvelable une fois [Source 1].\n  - Employés : un mois et demi, renouvelable une fois [Source 1].\n  - Ouvriers : quinze jours, renouvelable une fois [Source 1].\n\n- Contrats à durée déterminée (CDD) :\n  - Moins de six mois : une journée par semaine de travail, dans la limite de deux semaines [Source 1].\n  - Plus de six mois : un mois maximum [Source 1].\n\n- Contrats de courte durée (moins d’un mois, entre un et deux mois, plus de deux mois) :\n  - Moins d’un mois : deux jours maximum [So",
+      "erreur": null
+    },
+    {
+      "id": "rh_licenciement",
+      "role": "rh",
+      "question": "Quelles sont les règles du licenciement ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 4.68,
+      "confiance": 0.97,
+      "departement": "rh",
+      "reponse": "Règles du licenciement :\n\n- Motif valable : Le licenciement doit être justifié par un motif acceptable (aptitude, conduite, nécessités de fonctionnement) ; l’employeur doit le prouver. [Source 4]  \n- Faute grave : Constitue un motif de licenciement sans préavis ni indemnité (ex. non‑respect des consignes de sécurité pour travaux dangereux). [Source 1]  \n- Sanctions disciplinaires : L’employeur doit appliquer les sanctions graduellement (avertissement, blâme, mise à pied ≤ 8 jours, etc.) ; le licenciement peut intervenir après épuisement des sanctions dans l’année. [Source 9, Source 38]  \n- Pro",
+      "erreur": null
+    },
+    {
+      "id": "rh_bulletin_paie",
+      "role": "rh",
+      "question": "Que dit le Code du travail sur le bulletin de paie ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 29.64,
+      "confiance": 0.98,
+      "departement": "rh",
+      "reponse": "Bulletin de paie :\n\n- L’employeur doit remettre à chaque salarié, au moment du règlement du salaire, un document appelé « bulletin de paie » ; ce bulletin doit contenir toutes les mentions obligatoires fixées par l’autorité gouvernementale chargée du travail [Source 1].\n- L’acceptation du bulletin par le salarié, même s’il le signe « lu et approuvé », ne constitue pas une renonciation à son droit au salaire ni à ses accessoires [Source 1].",
+      "erreur": null
+    },
+    {
+      "id": "tous_loi_travail",
+      "role": "tous",
+      "question": "Que dit la loi sur le travail ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 48.42,
+      "confiance": 0.96,
+      "departement": "rh",
+      "reponse": "Travail – cadre légal :\n\n- Champ d’application : la loi s’applique à toute personne liée par un contrat de travail, quel que soit le mode d’exécution, la rémunération ou le secteur (industriel, commercial, artisanal, agricole, services, professions libérales, etc.) [Source 4]. Elle couvre également les salariés du secteur public non régis par une législation spécifique [Source 10].\n\n- Définitions :\n  - Salarié : toute personne qui s’engage à exercer une activité professionnelle sous la direction d’un ou plusieurs employeurs, moyennant rémunération, quel que soit son mode de paiement [Source 13",
+      "erreur": null
+    },
+    {
+      "id": "it_mots_de_passe",
+      "role": "it",
+      "question": "Que dit la DNSSI sur la sécurité des mots de passe ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "departement": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 24.07,
+      "confiance": 0.96,
+      "departement": "it",
+      "reponse": "Sécurité des mots de passe selon la DNSSI :\n\n- Chaque entité ou IIV doit formaliser une politique de gestion des mots de passe définissant les règles applicables, notamment la structure (complexité minimale), le changement périodique, la suppression en cas de suspicion de compromission et la réinitialisation [Source 1, Source 2].\n- Un processus de contrôle de l’application de ces règles doit être déployé [Source 1].\n- La gestion des mots de passe fait partie du contrôle d’accès aux systèmes et aux applications, avec des exigences de restriction d’accès (login/mot de passe, authentification for",
+      "erreur": null
+    },
+    {
+      "id": "it_sauvegardes",
+      "role": "it",
+      "question": "Quelles sont les exigences de sauvegarde selon la DNSSI ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 20.74,
+      "confiance": 0.98,
+      "departement": "it",
+      "reponse": "Exigences de sauvegarde selon la DNSSI :\n\n- Définir la nature des sauvegardes (complète, incrémentale, déduplication, …) pour chaque système d’information. [Source 1]\n- Préciser la fréquence des sauvegardes (journalière, hebdomadaire, mensuelle, …). [Source 1]\n- Indiquer le type de support utilisé (disque, bande). [Source 1]\n- Sauvegarder les données sensibles de façon chiffrée. [Source 1]\n- Tester régulièrement les supports de sauvegarde et vérifier que les données peuvent être restaurées dans les délais prévus, selon une procédure documentée. [Source 1]\n- Protéger physiquement les supports (",
+      "erreur": null
+    },
+    {
+      "id": "it_incidents",
+      "role": "it",
+      "question": "Que dit la DNSSI sur la gestion des incidents de sécurité ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 31.49,
+      "confiance": 0.97,
+      "departement": "it",
+      "reponse": "Gestion des incidents de sécurité selon la DNSSI :\n\n- Objectif : garantir une méthode cohérente et efficace de détection et de traitement des incidents de cybersécurité, incluant la communication des événements et des failles [Source 4].\n- Les procédures doivent couvrir tous les types d’incidents (erreurs, dysfonctionnements, sinistres naturels, malveillances, dénis de service, infections virales, intrusions, sabotage, saturation, etc.) et définir les moyens de signalement et de suivi [Source 4].\n- Les responsabilités de gestion des incidents doivent être clairement définies et les procédures ",
+      "erreur": null
+    },
+    {
+      "id": "jur_clauses_abusives",
+      "role": "juridique",
+      "question": "Que dit le Code des obligations sur les clauses abusives ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "departement": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 26.94,
+      "confiance": 0.99,
+      "departement": "juridique",
+      "reponse": "Code des obligations – dispositions applicables aux clauses abusives :\n\n- Le code des obligations et des contrats intervient uniquement comme cadre d’interprétation : les règles d’interprétation prévues aux articles 461 à 473 du dahir du 9 ramadan 1331 (12 août 1913) sont rappelées comme référence pour apprécier le caractère abusif d’une clause [Source 2].\n\n- L’appréciation du caractère abusif ne porte pas sur la définition de l’objet principal du contrat ni sur l’adéquation du prix ou de la rémunération, à condition que les clauses soient rédigées de façon claire et compréhensible [Source 3].",
+      "erreur": null
+    },
+    {
+      "id": "jur_formation_contrat",
+      "role": "juridique",
+      "question": "Que dit le Code des obligations et des contrats sur la formation du contrat ?",
+      "attendus": [
+        "RAG"
+      ],
+      "mode": "RAG",
+      "verifs": {
+        "mode": true,
+        "contexte": true,
+        "citations": true
+      },
+      "infos": {
+        "retrieval": true
+      },
+      "passe": true,
+      "latence_s": 28.97,
+      "confiance": 0.97,
+      "departement": "juridique",
+      "reponse": "Formation du contrat :\n\n- Le contrat n’est valable que si les parties ont donné leur accord sur les éléments essentiels de l’obligation et sur toutes les clauses licites qu’elles considèrent comme essentielles [Source 1].\n- Les obligations dérivant d’une déclaration de volonté (dont le contrat) requièrent :\n  1° la capacité de s’obliger [Source 2];\n  2° une déclaration valable de volonté portant sur les éléments essentiels de l’obligation [Source 2];\n  3° un objet certain pouvant former objet d’obligation [Source 2];\n  4° une cause licite de s’obliger [Source 2].",
+      "erreur": null
+    },
+    {
+      "id": "acces_rh_vers_finance",
+      "role": "rh",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true,
+        "interdit": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.01,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Finance. Compte tenu de votre profil actuel (Ressources humaines), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_it_vers_direction",
+      "role": "it",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true,
+        "interdit": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.0,
+      "confiance": 0.0,
+      "departement": "direction",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Direction. Compte tenu de votre profil actuel (IT), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_finance_vers_direction",
+      "role": "finance",
+      "question": "Qui compose le conseil d'administration d'Unimer ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true,
+        "interdit": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.02,
+      "confiance": 0.0,
+      "departement": "direction",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Direction. Compte tenu de votre profil actuel (Finance), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_finance_vers_commerce",
+      "role": "finance",
+      "question": "Quels sont les tarifs ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true,
+        "departement": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.0,
+      "confiance": 0.0,
+      "departement": "commerce",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Commerce. Compte tenu de votre profil actuel (Finance), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_rh_vers_juridique",
+      "role": "rh",
+      "question": "Que dit le Code des obligations sur les clauses abusives ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.0,
+      "confiance": 0.0,
+      "departement": "juridique",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Juridique. Compte tenu de votre profil actuel (Ressources humaines), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_marketing_vers_finance",
+      "role": "marketing",
+      "question": "Quel est le résultat net de Wafa Assurance en 2025 ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.01,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Accès non autorisé\n\nVotre demande relève du département Finance. Compte tenu de votre profil actuel (Marketing), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "acces_finance_vers_auto_nejma",
+      "role": "finance",
+      "question": "Quel est le chiffre d'affaires d'Auto Nejma ?",
+      "attendus": [
+        "HORS_PERIMETRE"
+      ],
+      "mode": "HORS_PERIMETRE",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.29,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Accès non autorisé\n\nVotre demande concerne des documents à accès restreint (Auto Nejma). Compte tenu de votre profil actuel (Finance), vous ne disposez pas des autorisations nécessaires pour consulter ces informations.\n\nSi cet accès est nécessaire à votre activité, nous vous invitons à adresser votre demande au responsable du département concerné ou à l'administrateur de la plateforme, qui pourra examiner l'ajustement de vos droits.\n\nJe reste à votre disposition pour toute question relevant de votre périmètre.",
+      "erreur": null
+    },
+    {
+      "id": "general_inflation",
+      "role": "finance",
+      "question": "Qu'est-ce que l'inflation ?",
+      "attendus": [
+        "GENERAL"
+      ],
+      "mode": "GENERAL",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 1.46,
+      "confiance": 0.0,
+      "departement": "finance",
+      "reponse": "Définition de l’inflation :\n\n- Hausse généralisée et durable du niveau des prix des biens et services dans une économie.\n- Mesurée habituellement par l’indice des prix à la consommation (IPC) ou l’indice des prix à la production (IPP).\n- Réduction du pouvoir d’achat de la monnaie : chaque unité monétaire permet d’acquérir moins qu’auparavant.\n- Causes principales :\n  - Demande excédentaire (inflation par la demande) : consommation et investissement supérieurs à l’offre disponible.\n  - Coûts de production en hausse (inflation par les coûts) : augmentation des salaires, des matières premières, d",
+      "erreur": null
+    },
+    {
+      "id": "general_capitale",
+      "role": "tous",
+      "question": "Quelle est la capitale du Maroc ?",
+      "attendus": [
+        "GENERAL"
+      ],
+      "mode": "GENERAL",
+      "verifs": {
+        "mode": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 0.33,
+      "confiance": 0.0,
+      "departement": null,
+      "reponse": "Capitale du Maroc: Rabat.",
+      "erreur": null
+    },
+    {
+      "id": "robustesse_entite_inconnue",
+      "role": "finance",
+      "question": "Quel est le chiffre d'affaires d'Apple en 2025 ?",
+      "attendus": [
+        "ABSENT"
+      ],
+      "mode": "ABSENT",
+      "verifs": {
+        "mode": true,
+        "interdit": true
+      },
+      "infos": {},
+      "passe": true,
+      "latence_s": 1.28,
+      "confiance": 0.99,
+      "departement": "finance",
+      "reponse": "Je ne dispose pas actuellement d'informations suffisantes dans les documents disponibles pour répondre précisément à cette question.\n\nAfin de garantir une réponse fiable, je préfère ne pas fournir d'information qui ne pourrait pas être vérifiée.",
+      "erreur": null
+    }
+  ]
+}
