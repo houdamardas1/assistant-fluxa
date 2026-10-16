@@ -402,7 +402,7 @@ def select_best_candidates(
             bonus += 0.30 if scope_chunk == scope_demande else -0.35
 
         # 6. Filiales / devises etrangeres
-        if not demande_filiale and scope_chunk != "consolide":
+        if metric_demande and not demande_filiale and scope_chunk != "consolide":
             if _RE_FILIALES.search(content_norm):
                 bonus -= 0.30
             if _RE_DEVISES.search(content_norm):
