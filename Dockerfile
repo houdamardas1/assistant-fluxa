@@ -26,6 +26,7 @@ ENV HF_HUB_OFFLINE=1
 
 COPY app/ ./app/
 COPY rag/ ./rag/
+COPY create_user.py ./
 
 # Non-root user. data/ holds the audit database (volume) and the FAISS index
 # (read-only bind mount): neither is copied into the image.

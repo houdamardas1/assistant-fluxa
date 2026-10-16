@@ -23,11 +23,21 @@ def _exiger_direction(request: Request, principal: Principal) -> None:
 @router.get("/audit/summary")
 def audit_summary(request: Request, principal: Principal = Depends(get_principal)):
     _exiger_direction(request, principal)
-    audit = request.app.state.audit
+    audit, tenant = request.app.state.audit, principal.tenant_id
     return {
-        "tenant_id": principal.tenant_id,
-        "counts": audit.counts(tenant_id=principal.tenant_id),
+        "tenant_id": tenant,
+        "counts": audit.counts(tenant_id=tenant),
+        "latency": audit.latency_stats(tenant),
+        "by_role": audit.counts_by_role(tenant),
     }
+
+
+@router.get("/audit/timeseries")
+def audit_timeseries(request: Request, days: int = 14,
+                     principal: Principal = Depends(get_principal)):
+    _exiger_direction(request, principal)
+    audit, tenant = request.app.state.audit, principal.tenant_id
+    return {"tenant_id": tenant, "days": audit.timeseries(tenant, days)}
 
 
 @router.get("/audit/recent")

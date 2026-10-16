@@ -9,11 +9,12 @@ from typing import Callable, Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, ask, auth, documents
+from app.api import admin, ask, auth, corpus, documents, me
 from app.core.config import settings
 from app.security.auth import RateLimiter, check_secret
 from app.services.audit import AuditLog
 from app.services.rag_service import RagService
+from app.services.users import UserStore
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 def create_app(
     rag_factory: Optional[Callable[[], RagService]] = None,
     audit_path: Optional[str] = None,
+    users_path: Optional[str] = None,
 ) -> FastAPI:
     """Fabrique de l'application. Les parametres permettent d'injecter un
     faux service RAG et une base d'audit temporaire dans les tests."""
@@ -38,6 +40,11 @@ def create_app(
 
         app.state.audit = AuditLog(audit_path or settings.AUDIT_DB_PATH)
         app.state.limiter = RateLimiter(settings.RATE_LIMIT_PER_MINUTE)
+        # Connexion : 5 essais/minute par (adresse, identifiant), 30 par adresse.
+        app.state.login_limiter = RateLimiter(5, 60.0)
+        app.state.ip_limiter = RateLimiter(30, 60.0)
+        from rag.config import ROLES_DISPONIBLES
+        app.state.users = UserStore(users_path or settings.USERS_DB_PATH, ROLES_DISPONIBLES)
 
         logger.info("Chargement de l'index et du modele d'embeddings...")
         app.state.rag = (rag_factory or RagService.from_disk)()
@@ -60,10 +67,12 @@ def create_app(
         allow_headers=["Authorization", "Content-Type"],
     )
 
+    app.include_router(auth.router)
     app.include_router(ask.router)
+    app.include_router(me.router)
+    app.include_router(corpus.router)
     app.include_router(documents.router)
     app.include_router(admin.router)
-    app.include_router(auth.router)
 
     @app.get("/")
     async def root():

@@ -54,7 +54,8 @@ def tok(role, tenant="t1", user="u1"):
 @pytest.fixture
 def client(tmp_path):
     fake = FakeRag()
-    app = create_app(rag_factory=lambda: fake, audit_path=str(tmp_path / "audit.db"))
+    app = create_app(rag_factory=lambda: fake, audit_path=str(tmp_path / "audit.db"),
+                     users_path=str(tmp_path / "users.db"))
     with TestClient(app) as c:
         c.fake, c.app_ = fake, app
         yield c
@@ -148,7 +149,8 @@ def test_documents_exigent_auth_et_rbac(tmp_path, monkeypatch):
     (brut / "w_chunks.json").write_text(json.dumps(
         {"file_name": "w.pdf", "company": "Wafa Assurance", "sector": "Assurance",
          "total_pages": 1, "total_chunks": 1, "chunks": ["texte confidentiel"]}), encoding="utf-8")
-    app = create_app(rag_factory=lambda: FakeRag(), audit_path=str(tmp_path / "a.db"))
+    app = create_app(rag_factory=lambda: FakeRag(), audit_path=str(tmp_path / "a.db"),
+                     users_path=str(tmp_path / "users.db"))
     with TestClient(app) as c:
         assert c.get("/documents/").status_code == 401
         assert c.get("/documents/Wafa Assurance/chunks").status_code == 401

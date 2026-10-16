@@ -35,6 +35,7 @@ class Settings(BaseSettings):
 
     # Audit (SQLite pour le POC, meme schema que PostgreSQL)
     AUDIT_DB_PATH: str = "data/audit.db"
+    USERS_DB_PATH: str = "data/users.db"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/morocco_ai"

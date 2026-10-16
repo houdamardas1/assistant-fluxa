@@ -3,7 +3,7 @@ Journal d'audit (SQLite, stdlib). Meme schema que celui prevu pour PostgreSQL :
 la migration ne changera que la connexion.
 
 Evenements : ACCESS_GRANTED, ACCESS_DENIED, NO_ANSWER, CLARIFICATION_REQUESTED,
-AUTH_FAILED, RATE_LIMITED, QUOTA_ERROR, ERROR, ADMIN_DENIED.
+LOGIN, AUTH_FAILED, RATE_LIMITED, QUOTA_ERROR, ERROR, ADMIN_DENIED.
 
 record() ne leve JAMAIS : une panne d'audit est journalisee (logging) mais ne
 bloque pas la reponse (choix de POC ; en production, decider fail-open ou
@@ -12,14 +12,18 @@ fail-closed selon l'exigence de tracabilite).
 
 import json
 import logging
+import math
 import sqlite3
 import threading
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+REQUETES = ("ACCESS_GRANTED", "ACCESS_DENIED", "NO_ANSWER", "CLARIFICATION_REQUESTED")
+ERREURS = ("ERROR", "QUOTA_ERROR")
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -42,6 +46,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log (ts);
 CREATE INDEX IF NOT EXISTS idx_audit_tenant_event ON audit_log (tenant_id, event_type, ts);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log (tenant_id, user_id, id);
 """
 
 _MAX_TEXTE = 2000
@@ -49,6 +54,10 @@ _MAX_TEXTE = 2000
 
 def _tronque(texte: Optional[str]) -> Optional[str]:
     return None if texte is None else str(texte)[:_MAX_TEXTE]
+
+
+def _marques(valeurs) -> str:
+    return ",".join("?" for _ in valeurs)
 
 
 class AuditLog:
@@ -91,6 +100,7 @@ class AuditLog:
         answer: Optional[str] = None,
         detail: Optional[str] = None,
         client_ip: Optional[str] = None,
+        ts: Optional[str] = None,
     ) -> bool:
         try:
             with self._lock, self._connexion() as cx:
@@ -100,7 +110,7 @@ class AuditLog:
                     "latency_ms, answer_excerpt, detail, client_ip) "
                     "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
-                        datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+                        ts or datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
                         request_id, tenant_id, user_id, role, event_type,
                         _tronque(question), mode, departement,
                         json.dumps(sources, ensure_ascii=False) if sources is not None else None,
@@ -112,6 +122,8 @@ class AuditLog:
         except Exception:
             logger.exception("Audit : ecriture impossible (event=%s)", event_type)
             return False
+
+    # ------------------------------------------------------------ lectures
 
     def counts(self, tenant_id: Optional[str] = None, since: Optional[str] = None) -> dict:
         sql = "SELECT event_type, COUNT(*) AS n FROM audit_log WHERE 1=1"
@@ -137,3 +149,94 @@ class AuditLog:
         params.append(limit)
         with self._connexion() as cx:
             return [dict(r) for r in cx.execute(sql, params)]
+
+    def counts_by_role(self, tenant_id: str, since: Optional[str] = None) -> dict:
+        """Requetes (hors erreurs techniques) par role d'utilisateur."""
+        sql = ("SELECT role, COUNT(*) AS n FROM audit_log WHERE tenant_id = ? "
+               f"AND event_type IN ({_marques(REQUETES)})")
+        params: list = [tenant_id, *REQUETES]
+        if since is not None:
+            sql += " AND ts >= ?"
+            params.append(since)
+        sql += " GROUP BY role ORDER BY n DESC"
+        with self._connexion() as cx:
+            return {r["role"] or "(inconnu)": r["n"] for r in cx.execute(sql, params)}
+
+    def timeseries(self, tenant_id: str, days: int = 14,
+                   today: Optional[datetime] = None) -> list:
+        """Une ligne par jour UTC (jours sans activite inclus, a zero)."""
+        days = max(1, min(int(days), 90))
+        fin = (today or datetime.now(timezone.utc)).date()
+        debut = fin - timedelta(days=days - 1)
+
+        with self._connexion() as cx:
+            lignes = cx.execute(
+                "SELECT substr(ts, 1, 10) AS jour, event_type, COUNT(*) AS n "
+                "FROM audit_log WHERE tenant_id = ? AND ts >= ? "
+                "GROUP BY jour, event_type",
+                (tenant_id, debut.isoformat()),
+            ).fetchall()
+
+        par_jour: dict = {}
+        for r in lignes:
+            par_jour.setdefault(r["jour"], {})[r["event_type"]] = r["n"]
+
+        serie = []
+        for i in range(days):
+            jour = (debut + timedelta(days=i)).isoformat()
+            c = par_jour.get(jour, {})
+            serie.append({
+                "day": jour,
+                "requests": sum(c.get(e, 0) for e in REQUETES),
+                "granted": c.get("ACCESS_GRANTED", 0),
+                "denied": c.get("ACCESS_DENIED", 0),
+                "no_answer": c.get("NO_ANSWER", 0),
+                "errors": sum(c.get(e, 0) for e in ERREURS),
+            })
+        return serie
+
+    def latency_stats(self, tenant_id: str, limit: int = 5000) -> dict:
+        """Latences (ms) des requetes traitees : moyenne, mediane, p95."""
+        with self._connexion() as cx:
+            valeurs = sorted(r["latency_ms"] for r in cx.execute(
+                "SELECT latency_ms FROM audit_log WHERE tenant_id = ? "
+                "AND latency_ms IS NOT NULL ORDER BY id DESC LIMIT ?",
+                (tenant_id, limit),
+            ))
+        n = len(valeurs)
+        if n == 0:
+            return {"n": 0, "avg_ms": None, "p50_ms": None, "p95_ms": None}
+
+        def rang(q: float) -> int:      # rang le plus proche (nearest-rank)
+            return valeurs[max(0, math.ceil(q * n) - 1)]
+
+        return {"n": n, "avg_ms": round(sum(valeurs) / n), "p50_ms": rang(0.5),
+                "p95_ms": rang(0.95)}
+
+    def user_history(self, tenant_id: str, user_id: str, limit: int = 30) -> list:
+        """Historique d'UN utilisateur (ses propres questions et reponses)."""
+        limit = max(1, min(int(limit), 200))
+        with self._connexion() as cx:
+            lignes = cx.execute(
+                "SELECT ts, request_id, event_type, question, mode, departement, "
+                "answer_excerpt, sources, confidence, latency_ms FROM audit_log "
+                "WHERE tenant_id = ? AND user_id = ? "
+                f"AND event_type IN ({_marques(REQUETES)}) "
+                "ORDER BY id DESC LIMIT ?",
+                (tenant_id, user_id, *REQUETES, limit),
+            ).fetchall()
+
+        historique = []
+        for r in lignes:
+            try:
+                sources = json.loads(r["sources"]) if r["sources"] else []
+            except ValueError:
+                sources = []
+            historique.append({
+                "request_id": r["request_id"], "ts": r["ts"],
+                "event_type": r["event_type"], "question": r["question"],
+                "mode": r["mode"], "departement": r["departement"],
+                "answer": r["answer_excerpt"], "sources": sources,
+                "confidence": r["confidence"], "latency_ms": r["latency_ms"],
+            })
+        return historique

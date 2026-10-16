@@ -51,3 +51,9 @@ data/test_rbac_*.json
 data/eval/*.bak
 
 data/audit.db
+
+data/users.db
+node_modules/
+dist/
+
+*.bak
