@@ -337,6 +337,13 @@
         "77,3"
       ],
       "expected_departement": "finance"
+    },
+    {
+      "id": "wafa_ca_2024_absent",
+      "role": "direction",
+      "statut": "a_verifier",
+      "question": "Quel est le chiffre d'affaires de Wafa Assurance en 2024 ?",
+      "expected_mode": "ABSENT"
     }
   ]
 }
