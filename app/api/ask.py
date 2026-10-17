@@ -30,6 +30,7 @@ class Source(BaseModel):
     entreprise: Optional[str] = None
     type: Optional[str] = None
     demo: bool = False
+    verifie: bool = False
 
 
 class AskResponse(BaseModel):

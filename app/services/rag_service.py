@@ -36,6 +36,7 @@ def to_public(result: dict) -> dict:
             "entreprise": r.get("entreprise"),
             "type": r.get("type_document"),
             "demo": bool(r.get("is_synthetic", False)),
+            "verifie": result.get("source_donnees") == "kpi_verifie",
         }
         for i, r in result.get("cited_sources", [])
     ]
