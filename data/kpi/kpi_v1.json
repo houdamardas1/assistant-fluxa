@@ -170,6 +170,63 @@
       ],
       "statut": "verifie_extrait",
       "note": "904 615 KMAD."
+    },
+    {
+      "id": "auto_nejma_ca_social_2023",
+      "entreprise": "Auto_Nejma",
+      "indicateur": "chiffre_affaires",
+      "libelle": "Chiffre d'affaires",
+      "annee": 2023,
+      "valeur": 2225,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "Auto_Nejma_RFA_2023.pdf",
+      "page": 9,
+      "roles_autorises": [
+        "direction",
+        "marketing",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "Texte p.9: 2 225 millions de dirhams (2 225,499 MDH au tableau p.52, colonne 2023)."
+    },
+    {
+      "id": "auto_nejma_ca_conso_2023",
+      "entreprise": "Auto_Nejma",
+      "indicateur": "chiffre_affaires",
+      "libelle": "Chiffre d'affaires",
+      "annee": 2023,
+      "valeur": 2275,
+      "unite": "MDH",
+      "perimetre": "consolide",
+      "document": "Auto_Nejma_RFA_2023.pdf",
+      "page": 57,
+      "roles_autorises": [
+        "direction",
+        "marketing",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "Texte p.57: CA consolide 2 275 millions de dirhams (2 274 525 KMAD p.53)."
+    },
+    {
+      "id": "auto_nejma_resultat_net_social_2023",
+      "entreprise": "Auto_Nejma",
+      "indicateur": "resultat_net",
+      "libelle": "Résultat net",
+      "annee": 2023,
+      "valeur": 160.3,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "Auto_Nejma_RFA_2023.pdf",
+      "page": 9,
+      "roles_autorises": [
+        "direction",
+        "marketing",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "Texte p.9: 160,3 MDH contre 187,2 en 2022; 160 304 136,06 DH au CPC social p.42."
     }
   ]
 }

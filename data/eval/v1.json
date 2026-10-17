@@ -417,6 +417,42 @@
         "HASSAR",
         "OURIAGLI"
       ]
+    },
+    {
+      "id": "auto_nejma_ca_conso_2023",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Quel est le chiffre d'affaires consolidé d'Auto Nejma en 2023 ?",
+      "expected_mode": "RAG",
+      "expected_source": "CDG_Capital_RFA_2024.pdf",
+      "expected_contains": [
+        "2 275"
+      ],
+      "expected_departement": "finance"
+    },
+    {
+      "id": "auto_nejma_ca_social_2023",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Quel est le chiffre d'affaires social d'Auto Nejma en 2023 ?",
+      "expected_mode": "RAG",
+      "expected_source": "CDG_Capital_RFA_2024.pdf",
+      "expected_contains": [
+        "2 225"
+      ],
+      "expected_departement": "finance"
+    },
+    {
+      "id": "auto_nejma_resultat_net_2023",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Quel est le résultat net d'Auto Nejma en 2023 ?",
+      "expected_mode": "RAG",
+      "expected_source": "CDG_Capital_RFA_2024.pdf",
+      "expected_contains": [
+        "160,3"
+      ],
+      "expected_departement": "finance"
     }
   ]
 }
