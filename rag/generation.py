@@ -17,6 +17,39 @@ RE_NUMEROS_SOURCE = re.compile(
 )
 
 
+RE_BLOC_AVEC_ESPACE = re.compile(r"[ \t]*[\[\u3010]([^\]\u3011]{0,200})[\]\u3011]")
+RE_PART_CITATION = re.compile(
+    r"^\s*(?:(sources?)\s*n?[\u00b0o]?\s*)?(\d+)\s*$", flags=re.IGNORECASE
+)
+
+
+def retirer_citations_invalides(texte: str, nb_sources: int) -> str:
+    """Supprime les references [Source N] dont N n'est pas un extrait fourni
+    (1..nb_sources). Les blocs entierement valides ne sont pas modifies."""
+
+    def _bloc(m):
+        parts = [
+            p for p in re.split(r"\s*(?:,|;|&|/|\bet\b)\s*", m.group(1))
+            if p.strip()
+        ]
+        analyses = [RE_PART_CITATION.match(p) for p in parts]
+        if not parts or any(a is None for a in analyses):
+            return m.group(0)
+        if not any(a.group(1) for a in analyses):
+            return m.group(0)
+        valides = [
+            int(a.group(2)) for a in analyses
+            if 1 <= int(a.group(2)) <= nb_sources
+        ]
+        if len(valides) == len(analyses):
+            return m.group(0)
+        if not valides:
+            return ""
+        return " [" + ", ".join(f"Source {n}" for n in valides) + "]"
+
+    return RE_BLOC_AVEC_ESPACE.sub(_bloc, texte)
+
+
 def extract_cited_sources(answer: str, results: list) -> list:
     """Sources explicitement citees ("[Source 1 - fichier, page 125]",
     "[Sources 2 et 3]"...)."""
@@ -189,5 +222,6 @@ def generate_answer(
     choix = response.choices[0]
     _dbg(f"Reponse RAG : finish_reason={choix.finish_reason}")
     texte = nettoyer_reponse(choix.message.content)
+    texte = retirer_citations_invalides(texte, len(rag_results))
 
     return texte or MESSAGE_ABSENTE
