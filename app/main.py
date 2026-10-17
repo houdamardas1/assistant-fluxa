@@ -49,6 +49,8 @@ def create_app(
         logger.info("Chargement de l'index et du modele d'embeddings...")
         app.state.rag = (rag_factory or RagService.from_disk)()
         logger.info("Pret : %s chunks.", app.state.rag.n_chunks)
+        from rag.config import GROQ_VERIFY_MODEL, TOP_K_VERIFY, VERIFY_CHARS
+        logger.info("Config RAG : verificateur=%s top_k_verify=%s verify_chars=%s", GROQ_VERIFY_MODEL, TOP_K_VERIFY, VERIFY_CHARS)
         yield
 
     app = FastAPI(
