@@ -61,7 +61,7 @@ function Brand() {
     <div className="flex items-center gap-3 px-2">
       <LogoMark size={36} />
       <div className="leading-tight">
-        <div className="text-sm font-semibold">Morocco Enterprise</div>
+        <div className="text-sm font-semibold">Fluxa</div>
         <div className="text-sm font-semibold text-brand">Intelligence</div>
       </div>
     </div>
@@ -127,7 +127,7 @@ export default function AppShell() {
           <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface/60 px-4 backdrop-blur sm:px-6">
             <div className="flex items-center gap-3">
               <button type="button" aria-label="Ouvrir le menu" onClick={() => setMenuOpen(true)} className="rounded-lg p-2 text-muted hover:bg-line/60 md:hidden"><Icon name="menu" /></button>
-              <h1 className="text-lg font-semibold tracking-tight">{TITLES[location.pathname] ?? 'Morocco Enterprise Intelligence'}</h1>
+              <h1 className="text-lg font-semibold tracking-tight">{TITLES[location.pathname] ?? 'Fluxa'}</h1>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">

@@ -1,4 +1,4 @@
-# Morocco Enterprise Intelligence — interface web
+# Fluxa — interface web
 
 React 18 + TypeScript + Vite + Tailwind + framer-motion. Toutes les donnees viennent de l'API FastAPI.
 

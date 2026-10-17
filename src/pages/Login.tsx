@@ -58,7 +58,7 @@ export default function Login() {
           <div className="flex items-center gap-3">
             <LogoMark size={44} />
             <div>
-              <div className="text-lg font-semibold leading-tight">Morocco Enterprise</div>
+              <div className="text-lg font-semibold leading-tight">Fluxa</div>
               <div className="text-lg font-semibold leading-tight text-brand">Intelligence</div>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function Login() {
           <motion.div animate={shake} className="card mx-auto w-full max-w-md p-8">
             <div className="mb-6 flex items-center gap-3 lg:hidden">
               <LogoMark size={36} />
-              <span className="font-semibold">Morocco Enterprise Intelligence</span>
+              <span className="font-semibold">Fluxa</span>
             </div>
             <h2 className="text-2xl font-semibold tracking-tight">Connexion</h2>
             <p className="mt-1 text-sm text-muted">Utilisez votre compte professionnel.</p>
