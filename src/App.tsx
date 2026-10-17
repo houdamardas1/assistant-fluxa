@@ -9,6 +9,7 @@ import Audit from './pages/Audit'
 import Chat from './pages/Chat'
 import Dashboard from './pages/Dashboard'
 import Documents from './pages/Documents'
+import Indicateurs from './pages/Indicateurs'
 import Login from './pages/Login'
 
 function Splash() {
@@ -45,6 +46,7 @@ export default function App() {
           <Route element={<RequireAuth><AppShell /></RequireAuth>}>
             <Route path="/assistant" element={<Chat />} />
             <Route path="/tableau-de-bord" element={<Dashboard />} />
+            <Route path="/indicateurs" element={<Indicateurs />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/audit" element={<RequireRole role="direction"><Audit /></RequireRole>} />
           </Route>

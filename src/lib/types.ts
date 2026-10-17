@@ -124,3 +124,24 @@ export interface Health {
   status: string
   index_loaded: boolean
 }
+
+export type KpiPerimetre = 'social' | 'consolide' | 'non_precise'
+
+export interface KpiItem {
+  id: string
+  entreprise: string
+  indicateur: string
+  libelle: string
+  annee: number
+  valeur: number
+  unite: string
+  perimetre: KpiPerimetre
+  document: string
+  page: number
+  detail: string | null
+  avertissement: string | null
+  verifie: boolean
+  annee_precedente: number | null
+  valeur_precedente: number | null
+  variation_pct: number | null
+}

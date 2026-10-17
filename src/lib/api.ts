@@ -1,6 +1,6 @@
 import type {
   AskResponse, AuditEvent, AuditSummary, AuditTimeseries, CorpusStats, Health,
-  HistoryItem, LoginResponse, User,
+  HistoryItem, KpiItem, LoginResponse, User,
 } from './types'
 
 const BASE: string =
@@ -105,4 +105,5 @@ export const api = {
   auditSummary: () => request<AuditSummary>('/admin/audit/summary'),
   auditTimeseries: (days = 14) => request<AuditTimeseries>(`/admin/audit/timeseries?days=${days}`),
   auditRecent: (limit = 100) => request<AuditEvent[]>(`/admin/audit/recent?limit=${limit}`),
+  kpi: () => request<KpiItem[]>('/kpi'),
 }

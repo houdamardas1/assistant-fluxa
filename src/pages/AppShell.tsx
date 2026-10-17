@@ -19,6 +19,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: '/assistant', label: 'Assistant', icon: 'chat' },
+  { to: '/indicateurs', label: 'Indicateurs', icon: 'chart' },
   { to: '/tableau-de-bord', label: 'Tableau de bord', icon: 'chart' },
   { to: '/documents', label: 'Documents', icon: 'file' },
   { to: '/audit', label: "Journal d'audit", icon: 'shield', only: 'direction' },
