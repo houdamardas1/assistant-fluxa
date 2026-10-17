@@ -1,4 +1,4 @@
-# Limites connues - v7 (17/10/2026)
+# Limites connues - v8 (17/10/2026)
 
 ## 1. Quota Groq (tier gratuit)
 
@@ -79,6 +79,15 @@ de type finance posees par la direction.
 Par ailleurs, les departements it, rh, commerce et juridique ne
 contiennent que des textes reglementaires (aucun document interne reel).
 
+Constate le 17/10/2026 : une question financiere sur Auto Nejma (mot-cle
+"chiffre d'affaires") est rattachee au departement finance. Or les chunks
+d'Auto Nejma et d'Unimer ont finance=0 (Auto_Nejma : marketing=199 ;
+Unimer : direction seulement). Le retrieval n'a alors renvoye aucun passage
+d'Auto Nejma (seulement le Code du travail et la loi 31-08, mode ABSENT).
+Observe une fois ; cause non isolee (hypothese : filtre par departement).
+Les valeurs de la table de KPI (section 11) contournent le probleme.
+Piste : ne pas filtrer par departement quand une entreprise est nommee.
+
 ## 6. Fidelite du generateur (citations et affirmations)
 
 Le modele peut ecrire des numeros inexistants dans [Source N]
@@ -91,12 +100,27 @@ critere d'age contradictoire et des exemples chiffres inventes. Le
 generateur recoit alors 14 extraits sur 15 (le verificateur en garde
 presque tous), ce qui rend le suivi des citations plus difficile.
 
-Etat : des regles de prompt (pas d'exemple chiffre invente, ne pas affirmer
-l'absence d'une information sans reverifier les extraits, numeros de source
-valides de 1 a k, une citation par phrase factuelle) sont presentes dans
-rag/generation.py mais NON committees : elles n'ont pas ete validees sur les
-cas RAG des lots A, B et D (quota). La mesure des citations brutes sur
-rh_licenciement n'est pas terminee.
+Mesure du 17/10/2026 sur rh_licenciement (14 extraits, une seule execution,
+non generalisee) : sur 10 blocs de citations brutes, 8 contenaient un numero
+d'article (35, 39, 51, 52, 55, 57, 459, 457-459) au lieu d'un numero
+d'extrait. Les regles de prompt (numeros de source de 1 a k, jamais
+d'article) sont committees mais n'ont PAS empeche cela : elles ne sont pas
+demontrees efficaces. Les autres regles du meme lot (pas d'exemple chiffre
+invente, ne pas affirmer l'absence sans reverifier) ne sont pas validees sur
+les lots A, B et D (quota).
+
+Correctifs deterministes (rag/generation.py) : reparer_citations remplace un
+numero hors plage par l'extrait qui contient seul "Article N" ;
+normaliser_plages developpe ou retire les plages ([Source 2-4],
+[Source 457-459], tiret insecable compris) ; retirer_citations_invalides
+retire le reste. Sur la mesure : 35 -> Source 8 (p.25) et 55, 57 -> Source 10
+(p.33), verifies dans le PDF ; 39, 51, 52 et 459 sans correspondance unique,
+retires. Resultat : 1 puce sans citation (preavis ; l'article 51 figure aux
+p.31 et p.37) et 1 puce a citation partiellement soutenue (faute grave : la
+p.105 soutient le non-respect des prescriptions de securite, mais pas "vol,
+abus de confiance, ivresse", qui viennent de l'article 39, p.25 et p.27).
+Une citation peut donc etre valide en format et infidele au contenu : seule
+une verification apres generation la detecterait.
 
 **Piste d'amelioration** : verification APRES generation (chiffres presents
 dans les sources, phrases sans citation) et score de fondement calcule
@@ -142,18 +166,25 @@ A confirmer dans les PDF : perimetre du resultat net 2024 de CDG Capital
 
 ## 11. Table de KPI (raccourci sans LLM)
 
-data/kpi/kpi_v1.json contient 9 valeurs saisies a la main et verifiees
+data/kpi/kpi_v1.json contient 12 valeurs saisies a la main et verifiees
 dans le texte extrait (pas sur l'image du PDF), avec document, page,
 perimetre et roles autorises. rag/kpi.py repond directement, sans Groq,
 quand la question designe un seul KPI (entreprise, metrique, annee) et que
 le role est autorise ; sinon le pipeline habituel prend la main.
 Limites :
-- couverture etroite (Wafa, CDG, Unimer) ; aucune valeur Auto Nejma ;
+- couverture etroite (Wafa, CDG, Unimer, Auto Nejma 2023) ; pour Auto Nejma :
+  chiffre d'affaires social 2 225 MDH (texte p.9 ; 2 225,499 au tableau
+  p.52), consolide 2 275 MDH (p.57), resultat net social 160,3 MDH (p.9) ;
+  pas de valeur 2024 (le document est le rapport 2023) ;
+- le champ entreprise d'un KPI doit etre identique au nom de l'index
+  (Auto_Nejma, avec underscore) ; sinon le raccourci se tait sans erreur
+  (constate le 17/10/2026) ; tests/test_kpi_donnees.py verifie que chaque
+  valeur est retrouvee dans la page citee ;
 - le produit net bancaire est dans la table mais n'est pas servi (la
   metrique n'est pas reconnue par detect_metric) ;
-- la confiance de ces reponses est fixee a 1,0 (affichee 100 %) : ce n'est
-  pas un score du verificateur ; un badge "donnee verifiee" est prevu
-  (le champ source_donnees n'est pas encore transmis a l'interface) ;
+- la confiance de ces reponses est fixee a 1,0 : ce n'est
+  pas un score du verificateur ; l'interface affiche a la place un badge "Donnee verifiee" quand
+  toutes les sources sont verifiees ;
 - une reponse peut ne donner qu'un perimetre alors qu'un autre existe dans
   le document sans figurer dans la table (le perimetre est indique dans la
   reponse) ;
