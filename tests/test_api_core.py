@@ -16,7 +16,7 @@ from app.security.auth import (  # noqa: E402
 from app.services.audit import AuditLog  # noqa: E402
 from app.services.rag_service import RagService, event_for_mode, to_public  # noqa: E402
 
-SECRET = "x" * 40
+SECRET = "x" * 64
 ROLES = ["tous", "finance", "direction", "it", "rh", "commerce", "juridique", "marketing"]
 n_ok = 0
 

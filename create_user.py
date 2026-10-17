@@ -41,6 +41,7 @@ def main() -> int:
     ap.add_argument("--tenant", default="demo")
     ap.add_argument("--name")
     ap.add_argument("--demo", action="store_true")
+    ap.add_argument("--rotate-demo", action="store_true")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--reset-password", metavar="USERNAME")
     ap.add_argument("--deactivate", metavar="USERNAME")
@@ -67,6 +68,19 @@ def main() -> int:
             return 1
         store.set_password(args.reset_password, saisir_mot_de_passe())
         print("Mot de passe modifie.")
+        return 0
+
+    if args.rotate_demo:
+        print("Nouveaux mots de passe des comptes demo_* (affiches UNE SEULE FOIS) :\n")
+        n = 0
+        for u in store.list_users():
+            if u.username.startswith("demo_"):
+                mot_de_passe = secrets.token_urlsafe(12)
+                store.set_password(u.username, mot_de_passe)
+                print(f"  {u.username:16s} {mot_de_passe}")
+                n += 1
+        if n == 0:
+            print("  (aucun compte demo_* trouve)")
         return 0
 
     if args.demo:
