@@ -75,7 +75,10 @@
       "role": "finance",
       "statut": "verifie",
       "question": "Quel est le résultat net de Wafa Assurance en 2025 ?",
-      "expected_mode": ["RAG", "CLARIFICATION"],
+      "expected_mode": [
+        "RAG",
+        "CLARIFICATION"
+      ],
       "expected_source": "Wafa_Assurance_RFA_2025.pdf"
     },
     {
@@ -297,6 +300,43 @@
       "expected_not_contains": [
         "12 738"
       ]
+    },
+    {
+      "id": "wafa_conseil_admin",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Qui compose le conseil d'administration de Wafa Assurance ?",
+      "expected_mode": "RAG",
+      "expected_source": "Wafa_Assurance_RFA_2025.pdf",
+      "expected_contains": [
+        "OURIAGLI",
+        "TAZLAOUI"
+      ],
+      "expected_departement": "direction"
+    },
+    {
+      "id": "unimer_ca_2024",
+      "role": "direction",
+      "statut": "verifie",
+      "question": "Quel est le chiffre d'affaires d'Unimer ?",
+      "expected_mode": "RAG",
+      "expected_source": "UNIMER_RFA_2024.pdf",
+      "expected_contains": [
+        "806"
+      ],
+      "expected_departement": "finance"
+    },
+    {
+      "id": "cdg_resultat_net_2024",
+      "role": "finance",
+      "statut": "verifie",
+      "question": "Quel est le r?sultat net 2024 de CDG Capital ?",
+      "expected_mode": "RAG",
+      "expected_source": "CDG_Capital_RFA_2024.pdf",
+      "expected_contains": [
+        "77,3"
+      ],
+      "expected_departement": "finance"
     }
   ]
 }
