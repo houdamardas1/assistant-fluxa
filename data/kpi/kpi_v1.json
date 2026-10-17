@@ -1,0 +1,175 @@
+{
+  "description": "KPI verifies manuellement contre le texte extrait. Unite : MDH.",
+  "version": 1,
+  "kpi": [
+    {
+      "id": "wafa_ca_social_2025",
+      "entreprise": "Wafa_Assurance",
+      "indicateur": "chiffre_affaires",
+      "libelle": "Chiffre d'affaires (comptes sociaux)",
+      "annee": 2025,
+      "valeur": 12738,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "Wafa_Assurance_RFA_2025.pdf",
+      "page": 64,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": ""
+    },
+    {
+      "id": "wafa_primes_emises_conso_2025",
+      "entreprise": "Wafa_Assurance",
+      "indicateur": "primes_emises",
+      "libelle": "Primes émises (consolidé)",
+      "annee": 2025,
+      "valeur": 15226,
+      "unite": "MDH",
+      "perimetre": "consolide",
+      "document": "Wafa_Assurance_RFA_2025.pdf",
+      "page": 65,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": ""
+    },
+    {
+      "id": "wafa_revenus_assurance_ifrs_2025",
+      "entreprise": "Wafa_Assurance",
+      "indicateur": "revenus_assurance",
+      "libelle": "Revenus d'assurance IFRS (consolidé)",
+      "annee": 2025,
+      "valeur": 9065,
+      "unite": "MDH",
+      "perimetre": "consolide",
+      "document": "Wafa_Assurance_RFA_2025.pdf",
+      "page": 66,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": ""
+    },
+    {
+      "id": "cdg_pnb_social_2024",
+      "entreprise": "CDG_Capital",
+      "indicateur": "produit_net_bancaire",
+      "libelle": "Produit net bancaire (social)",
+      "annee": 2024,
+      "valeur": 374.5,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "CDG_Capital_RFA_2024.pdf",
+      "page": 7,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": ""
+    },
+    {
+      "id": "cdg_pnb_conso_2024",
+      "entreprise": "CDG_Capital",
+      "indicateur": "produit_net_bancaire",
+      "libelle": "Produit net bancaire (consolidé)",
+      "annee": 2024,
+      "valeur": 619,
+      "unite": "MDH",
+      "perimetre": "consolide",
+      "document": "CDG_Capital_RFA_2024.pdf",
+      "page": 8,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": ""
+    },
+    {
+      "id": "cdg_resultat_net_2024",
+      "entreprise": "CDG_Capital",
+      "indicateur": "resultat_net",
+      "libelle": "Résultat net",
+      "annee": 2024,
+      "valeur": 77.3,
+      "unite": "MDH",
+      "perimetre": "non_precise",
+      "document": "CDG_Capital_RFA_2024.pdf",
+      "page": 7,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "Meme passage que le PNB social : probablement social, a confirmer dans le PDF."
+    },
+    {
+      "id": "cdg_resultat_net_2023",
+      "entreprise": "CDG_Capital",
+      "indicateur": "resultat_net",
+      "libelle": "Résultat net",
+      "annee": 2023,
+      "valeur": 32.7,
+      "unite": "MDH",
+      "perimetre": "non_precise",
+      "document": "CDG_Capital_RFA_2024.pdf",
+      "page": 7,
+      "roles_autorises": [
+        "direction",
+        "finance",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "Valeur de comparaison citee dans la meme phrase que 2024."
+    },
+    {
+      "id": "unimer_ca_sa_2024",
+      "entreprise": "Unimer",
+      "indicateur": "chiffre_affaires",
+      "libelle": "Chiffre d'affaires d'Unimer SA (social)",
+      "annee": 2024,
+      "valeur": 806.449,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "UNIMER_RFA_2024.pdf",
+      "page": 16,
+      "roles_autorises": [
+        "direction",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "806 449 KMAD. Le CA consolide du groupe existe (p.8) mais sa valeur n'est pas lisible dans l'extraction."
+    },
+    {
+      "id": "unimer_ca_sa_2023",
+      "entreprise": "Unimer",
+      "indicateur": "chiffre_affaires",
+      "libelle": "Chiffre d'affaires d'Unimer SA (social)",
+      "annee": 2023,
+      "valeur": 904.615,
+      "unite": "MDH",
+      "perimetre": "social",
+      "document": "UNIMER_RFA_2024.pdf",
+      "page": 16,
+      "roles_autorises": [
+        "direction",
+        "tous"
+      ],
+      "statut": "verifie_extrait",
+      "note": "904 615 KMAD."
+    }
+  ]
+}
