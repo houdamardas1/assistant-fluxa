@@ -50,6 +50,74 @@ def retirer_citations_invalides(texte: str, nb_sources: int) -> str:
     return RE_BLOC_AVEC_ESPACE.sub(_bloc, texte)
 
 
+def reparer_citations(texte: str, rag_results: list) -> str:
+    """Remplace un numero hors plage (souvent un numero d'article) par le
+    numero de l'extrait qui contient exactement "Article N". Sans
+    correspondance unique, le numero est laisse tel quel et sera retire par
+    retirer_citations_invalides."""
+    nb = len(rag_results)
+
+    def _extrait_de_l_article(num: int):
+        motif = re.compile(
+            r"\bart(?:icles?|\.)?\s*%d(?!\d)" % num, flags=re.IGNORECASE
+        )
+        trouves = [
+            i for i, r in enumerate(rag_results, start=1)
+            if motif.search(r.get("content", ""))
+        ]
+        return trouves[0] if len(trouves) == 1 else None
+
+    def _bloc(m):
+        parts = [
+            p for p in re.split(r"\s*(?:,|;|&|/|\bet\b)\s*", m.group(1))
+            if p.strip()
+        ]
+        analyses = [RE_PART_CITATION.match(p) for p in parts]
+        if not parts or any(a is None for a in analyses):
+            return m.group(0)
+        if not any(a.group(1) for a in analyses):
+            return m.group(0)
+        numeros = []
+        change = False
+        for a in analyses:
+            num = int(a.group(2))
+            if not 1 <= num <= nb:
+                rep = _extrait_de_l_article(num)
+                if rep is not None:
+                    num, change = rep, True
+            numeros.append(num)
+        if not change:
+            return m.group(0)
+        uniques = list(dict.fromkeys(numeros))
+        return " [" + ", ".join("Source %d" % x for x in uniques) + "]"
+
+    return RE_BLOC_AVEC_ESPACE.sub(_bloc, texte)
+
+
+_RE_BLOC_PLAGE = re.compile(r"[ \t]*\[([^\]]{0,200}[-\u2010-\u2015][^\]]{0,200})\]")
+_RE_PLAGE = re.compile(r"^\s*Sources?\s*(\d+)\s*[-\u2010-\u2015]\s*(\d+)\s*$", re.IGNORECASE)
+
+
+def normaliser_plages(texte: str, nb_sources: int) -> str:
+    """Developpe une plage valide [Source 2-4] en [Source 2, Source 3, Source 4]
+    et retire une plage hors de 1..nb_sources (souvent des articles)."""
+    def _bloc(m):
+        parts = [p for p in re.split(r"\s*[,;]\s*", m.group(1)) if p.strip()]
+        if not any(_RE_PLAGE.match(p) for p in parts):
+            return m.group(0)
+        sortie = []
+        for p in parts:
+            r = _RE_PLAGE.match(p)
+            if not r:
+                sortie.append(p.strip())
+                continue
+            a, b = int(r.group(1)), int(r.group(2))
+            if 1 <= a <= b <= nb_sources and b - a <= 20:
+                sortie.extend("Source %d" % i for i in range(a, b + 1))
+        return " [" + ", ".join(sortie) + "]" if sortie else ""
+    return _RE_BLOC_PLAGE.sub(_bloc, texte)
+
+
 def extract_cited_sources(answer: str, results: list) -> list:
     """Sources explicitement citees ("[Source 1 - fichier, page 125]",
     "[Sources 2 et 3]"...)."""
@@ -203,6 +271,17 @@ def generate_answer(
         "6. Réponds en français, de façon concise et factuelle.\n"
         "7. Pour tout chiffre cité, indique le périmètre (social ou "
         "consolidé) et l'année lorsque l'extrait les précise.\n"
+        "8. N'ajoute AUCUN exemple chiffre ni application numerique d'une regle "
+        "(ex : calcul pour une duree de service donnee) absente des extraits, sauf "
+        "si la question demande explicitement un calcul.\n"
+        "9. N'ecris que des affirmations soutenues par un extrait precis. Avant de "
+        "dire qu'une information n'est pas precisee dans les extraits, verifie "
+        "qu'aucun extrait ne la donne ; si un extrait la donne, rapporte-la avec "
+        "sa citation. Ne termine pas par un commentaire sur ce que les extraits "
+        "ne precisent pas, sauf si la question le demande.\n"
+        f"10. Les numeros de source valides vont de 1 a {len(rag_results)}. N'ecris "
+        "jamais un autre numero dans [Source N] (ni numero d'article, ni numero "
+        "de page). Termine chaque phrase factuelle par sa citation.\n"
         f"{_contexte_departement(departement)}"
         f"{_FORMAT_TEXTE_PROPRE}\n"
         f"Rôle de l'utilisateur : {user_role}\n\n"
@@ -222,6 +301,9 @@ def generate_answer(
     choix = response.choices[0]
     _dbg(f"Reponse RAG : finish_reason={choix.finish_reason}")
     texte = nettoyer_reponse(choix.message.content)
+    _dbg("Citations brutes : %s | nb_sources=%d" % (re.findall(r"\[[^\]]*\]", texte), len(rag_results)))
+    texte = normaliser_plages(texte, len(rag_results))
+    texte = reparer_citations(texte, rag_results)
     texte = retirer_citations_invalides(texte, len(rag_results))
 
     return texte or MESSAGE_ABSENTE
