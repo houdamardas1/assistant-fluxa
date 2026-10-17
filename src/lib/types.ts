@@ -21,6 +21,7 @@ export type Mode =
   | 'RAG' | 'MULTI_INTENT' | 'GENERAL' | 'ABSENT' | 'HORS_PERIMETRE' | 'CLARIFICATION'
 
 export interface Source {
+  verifie?: boolean
   n: number
   fichier: string | null
   page: number | null

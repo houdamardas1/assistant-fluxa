@@ -74,6 +74,19 @@ function ConfidenceRing({ value }: { value: number }) {
   )
 }
 
+function VerifiedBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-xs font-medium"
+      style={{ color: 'rgb(var(--ok))' }}
+      title="Valeur issue de la base de KPI vérifiée, sans appel au modèle de génération"
+    >
+      <Icon name="check" size={13} />
+      Donnée vérifiée
+    </span>
+  )
+}
+
 function SourceCard({ source, domId, highlighted, index }: { source: Source; domId: string; highlighted: boolean; index: number }) {
   return (
     <motion.li
@@ -91,6 +104,7 @@ function SourceCard({ source, domId, highlighted, index }: { source: Source; dom
             {source.page !== null && <span>Page {source.page}</span>}
             {source.entreprise && <Badge tone="neutral">{cleanName(source.entreprise)}</Badge>}
             {source.type && <Badge tone="plum">{TYPE_LABELS[source.type] ?? source.type}</Badge>}
+            {source.verifie && <Badge tone="neutral">Valeur vérifiée</Badge>}
             {source.demo && <Badge tone="warn">Donnée de démonstration</Badge>}
           </div>
         </div>
@@ -125,6 +139,7 @@ export function AssistantMessage({
   msgId, result, latencyMs, animate,
 }: { msgId: string; result: AskResponse; latencyMs: number | null; animate: boolean }) {
   const meta = modeMeta(result.mode)
+  const verified = result.sources.length > 0 && result.sources.every((s) => s.verifie === true)
   const special = SPECIAL[result.mode]
   const { shown, done } = useTypewriter(result.answer, animate)
   const [highlight, setHighlight] = useState<number | null>(null)
@@ -168,7 +183,9 @@ export function AssistantMessage({
           <motion.div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 px-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
             {!special && <Badge tone={meta.tone}>{meta.label}</Badge>}
             {result.departement && <Badge tone="neutral">{roleLabel(result.departement)}</Badge>}
-            {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT') && <ConfidenceRing value={result.confidence} />}
+            {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT') && (
+              verified ? <VerifiedBadge /> : <ConfidenceRing value={result.confidence} />
+            )}
             {latencyMs !== null && (
               <span className="inline-flex items-center gap-1 text-xs text-muted"><Icon name="clock" size={13} />{formatMs(latencyMs)}</span>
             )}
