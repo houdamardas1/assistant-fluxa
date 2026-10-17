@@ -330,7 +330,7 @@
       "id": "cdg_resultat_net_2024",
       "role": "finance",
       "statut": "verifie",
-      "question": "Quel est le r?sultat net 2024 de CDG Capital ?",
+      "question": "Quel est le résultat net 2024 de CDG Capital ?",
       "expected_mode": "RAG",
       "expected_source": "CDG_Capital_RFA_2024.pdf",
       "expected_contains": [

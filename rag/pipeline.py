@@ -28,6 +28,7 @@ from .generation import (
     renumber_multi_intent_sources,
 )
 from .intent import PREFIXES_GENERAUX, classify_question, detect_intent
+from .kpi import repondre_depuis_kpi
 from .messages import (
     MESSAGE_ABSENTE,
     MESSAGE_CLARIFICATION_PERIMETRE,
@@ -431,6 +432,29 @@ def process_question_hybride(
 
         _dbg(f"Departement detecte {departement!r} sans corpus reel : pas de filtre.")
         departement = None
+
+    # Raccourci KPI : chiffre verifie de la table, sans appel au LLM. Ne repond
+    # que si la question designe sans ambiguite UN KPI, si le role est autorise
+    # et si la valeur figure dans le passage cite ; sinon rend la main.
+    if not multi:
+        rep_kpi = repondre_depuis_kpi(query, user_role, metadata)
+        if rep_kpi is not None:
+            k = rep_kpi["kpi"]
+            passage = dict(rep_kpi["passage"], score=1.0)
+            _dbg(f"Raccourci KPI : {k['id']}")
+            return _resultat(
+                rep_kpi["answer"], "RAG", "ENTREPRISE",
+                cited_sources=[(1, passage)], all_results=[passage],
+                candidats_finaux=[passage], max_score=1.0,
+                can_answer=True, confidence=1.0, extraits_verifier=[1],
+                montant_structure={
+                    "valeur": k["valeur"], "unite": k["unite"],
+                    "scope": None if k["perimetre"] == "non_precise" else k["perimetre"],
+                    "metric": k["indicateur"],
+                },
+                departement=departement_detecte,
+                source_donnees="kpi_verifie",
+            )
 
     if multi:
         result = process_comparative_question(
