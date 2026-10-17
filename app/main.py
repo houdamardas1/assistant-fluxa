@@ -1,5 +1,5 @@
 """
-Morocco Enterprise Intelligence Platform - Main Application
+Fluxa - Main Application
 """
 
 import logging
@@ -54,7 +54,7 @@ def create_app(
         yield
 
     app = FastAPI(
-        title="Morocco Enterprise Intelligence Platform",
+        title="Fluxa",
         description="Enterprise AI Platform for Moroccan Economic Data",
         version="1.0.0",
         lifespan=lifespan,
@@ -80,7 +80,7 @@ def create_app(
     @app.get("/")
     async def root():
         return {
-            "service": "Morocco Enterprise Intelligence Platform",
+            "service": "Fluxa",
             "version": "1.0.0",
             "status": "healthy",
         }

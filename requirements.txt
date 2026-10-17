@@ -1,5 +1,5 @@
 ﻿# ============================================================
-# Morocco Enterprise Intelligence Platform - Requirements
+# Fluxa - Requirements
 # ============================================================
 
 # --- Web framework ---
@@ -40,3 +40,6 @@ pypdf2>=3.0
 # --- Analytics (pour KPI, trends, forecasting) ---
 # pandas>=2.0
 # scikit-learn>=1.3
+
+# --- PostgreSQL (audit, utilisateurs) ---
+psycopg[binary]>=3.1
