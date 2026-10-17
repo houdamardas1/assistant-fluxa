@@ -20,5 +20,20 @@ services:
       # Audit + utilisateurs : lecture-ecriture, persistants
       - app_db:/app/data/db
 
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        # Adresse de l'API vue par le NAVIGATEUR (integree au build)
+        VITE_API_URL: http://localhost:8000
+    image: morocco-web:local
+    container_name: morocco-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:8080"
+
 volumes:
   app_db:
