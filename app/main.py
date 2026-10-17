@@ -9,7 +9,7 @@ from typing import Callable, Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, ask, auth, corpus, documents, me
+from app.api import admin, ask, auth, corpus, documents, kpi, me
 from app.core.config import settings
 from app.security.auth import RateLimiter, check_secret
 from app.services.audit import AuditLog
@@ -74,6 +74,7 @@ def create_app(
     app.include_router(me.router)
     app.include_router(corpus.router)
     app.include_router(documents.router)
+    app.include_router(kpi.router)
     app.include_router(admin.router)
 
     @app.get("/")
