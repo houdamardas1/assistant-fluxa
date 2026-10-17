@@ -57,3 +57,6 @@ node_modules/
 dist/
 
 *.bak
+
+# Les tests du dossier tests/ sont toujours suivis, meme s'ils commencent par test_p
+!tests/test_*.py
