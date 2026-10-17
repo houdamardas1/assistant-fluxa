@@ -45,6 +45,7 @@ from .rbac import (
 from .retrieval import search, select_best_candidates
 from .temporel import detect_temporal_requirement, temporal_incompatible
 from .textutils import _norm
+from .postcheck import verifier_fondement
 from .verification import verify_relevance
 
 
@@ -81,6 +82,7 @@ def _pipeline_rag(
     `departement_contexte` est le departement detecte, utilise pour adapter
     le vocabulaire de la reponse meme quand aucun filtre n'est applique."""
     ctx_dept = departement_contexte or departement
+    fondement = None
 
     results = search(
         query, model, index, metadata, user_role=user_role,
@@ -171,6 +173,12 @@ def _pipeline_rag(
 
         answer = generate_answer(query, rag_results, user_role, ctx_dept)
         cited_sources = extract_cited_sources(answer, rag_results)
+        fondement = verifier_fondement(answer, rag_results)
+        _dbg("Fondement : score=%s unites=%d non_citees=%d nombres_non_soutenus=%d lexical=%d" % (
+            fondement["score"], fondement["unites"], fondement["non_citees"],
+            fondement["nombres_non_soutenus"], fondement["a_verifier_lexical"]))
+        for d in fondement["details"]:
+            _dbg("  fondement - %s : %s" % (",".join(d["problemes"]), d["texte"][:110]))
 
         if rag_results and not cited_sources:
             incoherence_citation = True
@@ -202,6 +210,7 @@ def _pipeline_rag(
         can_answer=can_answer, confidence=confidence,
         verify_error=verify_error, extraits_verifier=extraits,
         incoherence_citation=incoherence_citation,
+        fondement=fondement,
         montant_structure=montant_structure,
     )
 

@@ -118,6 +118,14 @@ def normaliser_plages(texte: str, nb_sources: int) -> str:
     return _RE_BLOC_PLAGE.sub(_bloc, texte)
 
 
+def nettoyer_espaces_citations(texte: str) -> str:
+    """Apres retrait ou reparation des citations : supprime les espaces
+    doubles et l'espace avant un point ou une virgule
+    (ex. 'cause  [Source 5] .'). L'indentation n'est pas modifiee."""
+    texte = re.sub(r"(?<=\S) {2,}(?=\S)", " ", texte)
+    return re.sub(r"(?<=[\]\w)]) +([.,])(?=\s|$)", r"\1", texte)
+
+
 def extract_cited_sources(answer: str, results: list) -> list:
     """Sources explicitement citees ("[Source 1 - fichier, page 125]",
     "[Sources 2 et 3]"...)."""
@@ -305,5 +313,6 @@ def generate_answer(
     texte = normaliser_plages(texte, len(rag_results))
     texte = reparer_citations(texte, rag_results)
     texte = retirer_citations_invalides(texte, len(rag_results))
+    texte = nettoyer_espaces_citations(texte)
 
     return texte or MESSAGE_ABSENTE
