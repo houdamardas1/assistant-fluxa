@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     departement   TEXT,
     sources       TEXT,
     confidence    REAL,
+    fondement     REAL,
     latency_ms    INTEGER,
     answer_excerpt TEXT,
     detail        TEXT,
@@ -68,6 +69,9 @@ class AuditLog:
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
             with self._connexion() as cx:
                 cx.executescript(_SCHEMA)
+                cols = {r[1] for r in cx.execute("PRAGMA table_info(audit_log)")}
+                if "fondement" not in cols:
+                    cx.execute("ALTER TABLE audit_log ADD COLUMN fondement REAL")
         except Exception:
             logger.exception("Audit : initialisation impossible (%s)", self.path)
 
@@ -97,6 +101,7 @@ class AuditLog:
         sources: Optional[list] = None,
         confidence: Optional[float] = None,
         latency_ms: Optional[int] = None,
+        fondement: Optional[float] = None,
         answer: Optional[str] = None,
         detail: Optional[str] = None,
         client_ip: Optional[str] = None,
@@ -107,15 +112,15 @@ class AuditLog:
                 cx.execute(
                     "INSERT INTO audit_log (ts, request_id, tenant_id, user_id, role, "
                     "event_type, question, mode, departement, sources, confidence, "
-                    "latency_ms, answer_excerpt, detail, client_ip) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "latency_ms, answer_excerpt, detail, client_ip, fondement) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         ts or datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
                         request_id, tenant_id, user_id, role, event_type,
                         _tronque(question), mode, departement,
                         json.dumps(sources, ensure_ascii=False) if sources is not None else None,
                         confidence, latency_ms, _tronque(answer), _tronque(detail),
-                        client_ip,
+                        client_ip, fondement,
                     ),
                 )
             return True

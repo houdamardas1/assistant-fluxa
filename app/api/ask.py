@@ -85,7 +85,8 @@ def ask(
         question=body.question, mode=public["mode"],
         departement=public["departement"], sources=public["sources"],
         confidence=public["confidence"], latency_ms=latence_ms,
-        answer=public["answer"], **qui,
+        answer=public["answer"],
+        fondement=(resultat.get("fondement") or {}).get("score"), **qui,
     )
 
     return AskResponse(request_id=rid, **public)
