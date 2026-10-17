@@ -31,7 +31,7 @@ COPY create_user.py ./
 # Non-root user. data/ holds the audit database (volume) and the FAISS index
 # (read-only bind mount): neither is copied into the image.
 RUN useradd --create-home --uid 1000 appuser \
-    && mkdir -p /app/data/index \
+    && mkdir -p /app/data/index /app/data/db \
     && chown -R appuser:appuser /app /opt/hf-cache
 USER appuser
 
