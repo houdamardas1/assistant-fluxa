@@ -38,13 +38,15 @@ def create_app(
         if avertissement:
             logger.warning(avertissement)
 
-        app.state.audit = AuditLog(audit_path or settings.AUDIT_DB_PATH)
+        app.state.audit = AuditLog(audit_path or settings.AUDIT_DB_PATH,
+                                  database_url=None if audit_path else (settings.PG_DSN or None))
         app.state.limiter = RateLimiter(settings.RATE_LIMIT_PER_MINUTE)
         # Connexion : 5 essais/minute par (adresse, identifiant), 30 par adresse.
         app.state.login_limiter = RateLimiter(5, 60.0)
         app.state.ip_limiter = RateLimiter(30, 60.0)
         from rag.config import ROLES_DISPONIBLES
-        app.state.users = UserStore(users_path or settings.USERS_DB_PATH, ROLES_DISPONIBLES)
+        app.state.users = UserStore(users_path or settings.USERS_DB_PATH, ROLES_DISPONIBLES,
+                                  database_url=None if users_path else (settings.PG_DSN or None))
 
         logger.info("Chargement de l'index et du modele d'embeddings...")
         app.state.rag = (rag_factory or RagService.from_disk)()

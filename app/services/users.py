@@ -18,6 +18,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, List, Optional
+from .pg import connexion_pg, psycopg
+
+_ERREURS_UNICITE = (sqlite3.IntegrityError,) + (
+    (psycopg.IntegrityError,) if psycopg is not None else ())
 
 _N, _R, _P, _DKLEN = 2 ** 14, 8, 1, 32
 _MAXMEM = 64 * 1024 * 1024
@@ -71,10 +75,30 @@ class User:
 
 
 class UserStore:
-    def __init__(self, path: str, allowed_roles: Iterable[str]):
+    def __init__(self, path: str, allowed_roles: Iterable[str],
+                 database_url: Optional[str] = None):
         self.path = str(path)
+        self.url = database_url or None
+        self._pg = bool(self.url)
         self.allowed_roles = set(allowed_roles)
         self._lock = threading.Lock()
+        if self._pg:
+            if psycopg is None:
+                raise RuntimeError("PG_DSN defini mais psycopg n'est pas installe")
+            with self._connexion() as cx:
+                cx.execute("CREATE EXTENSION IF NOT EXISTS citext")
+                cx.execute(
+                    "CREATE TABLE IF NOT EXISTS users ("
+                    " id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,"
+                    " username CITEXT NOT NULL UNIQUE,"
+                    " password_hash TEXT NOT NULL,"
+                    " display_name TEXT NOT NULL,"
+                    " role TEXT NOT NULL,"
+                    " tenant_id TEXT NOT NULL,"
+                    " active INTEGER NOT NULL DEFAULT 1,"
+                    " created_at TEXT NOT NULL)"
+                )
+            return
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with self._connexion() as cx:
             cx.execute(
@@ -91,6 +115,10 @@ class UserStore:
 
     @contextmanager
     def _connexion(self):
+        if self._pg:
+            with connexion_pg(self.url) as cx:
+                yield cx
+            return
         cx = sqlite3.connect(self.path, timeout=5)
         cx.row_factory = sqlite3.Row
         try:
@@ -124,7 +152,7 @@ class UserStore:
                     (username, hash_password(password), nom, role, tenant_id,
                      datetime.now(timezone.utc).isoformat(timespec="seconds")),
                 )
-        except sqlite3.IntegrityError as e:
+        except _ERREURS_UNICITE as e:
             raise ValueError("Cet identifiant existe deja.") from e
         return User(username, nom, role, tenant_id, True)
 

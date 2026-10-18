@@ -48,7 +48,8 @@ def main() -> int:
     ap.add_argument("--activate", metavar="USERNAME")
     args = ap.parse_args()
 
-    store = UserStore(args.db, ROLES_DISPONIBLES)
+    store = UserStore(args.db, ROLES_DISPONIBLES,
+                      database_url=(settings.PG_DSN or None) if args.db == settings.USERS_DB_PATH else None)
 
     if args.list:
         for u in store.list_users():
