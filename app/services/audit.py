@@ -19,6 +19,12 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:  # SQLite seul : psycopg facultatif
+    psycopg = None
+    dict_row = None
 
 logger = logging.getLogger(__name__)
 
@@ -61,24 +67,81 @@ def _marques(valeurs) -> str:
     return ",".join("?" for _ in valeurs)
 
 
+_SCHEMA_PG = """
+CREATE TABLE IF NOT EXISTS audit_log (
+    id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ts            TEXT NOT NULL,
+    request_id    TEXT NOT NULL,
+    tenant_id     TEXT,
+    user_id       TEXT,
+    role          TEXT,
+    event_type    TEXT NOT NULL,
+    question      TEXT,
+    mode          TEXT,
+    departement   TEXT,
+    sources       TEXT,
+    confidence    DOUBLE PRECISION,
+    fondement     DOUBLE PRECISION,
+    latency_ms    INTEGER,
+    answer_excerpt TEXT,
+    detail        TEXT,
+    client_ip     TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log (ts);
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_event ON audit_log (tenant_id, event_type, ts);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log (tenant_id, user_id, id);
+"""
+
+
+class _CxPg:
+    """Adapte une connexion psycopg a l'API utilisee ici (placeholders '?')."""
+
+    def __init__(self, raw):
+        self._raw = raw
+
+    def execute(self, sql, params=()):
+        return self._raw.execute(sql.replace("?", "%s"), params or None)
+
+
 class AuditLog:
-    def __init__(self, path: str):
+    def __init__(self, path: str, database_url: Optional[str] = None):
         self.path = str(path)
+        self.url = database_url or None
+        self._pg = bool(self.url)
         self._lock = threading.Lock()
+        if self._pg and psycopg is None:
+            raise RuntimeError("DATABASE_URL defini mais psycopg n'est pas installe")
         try:
-            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-            with self._connexion() as cx:
-                cx.executescript(_SCHEMA)
-                cols = {r[1] for r in cx.execute("PRAGMA table_info(audit_log)")}
-                if "fondement" not in cols:
-                    cx.execute("ALTER TABLE audit_log ADD COLUMN fondement REAL")
+            if self._pg:
+                with self._connexion() as cx:
+                    cx.execute(_SCHEMA_PG)
+                    cx.execute("ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS fondement DOUBLE PRECISION")
+            else:
+                Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+                with self._connexion() as cx:
+                    cx.executescript(_SCHEMA)
+                    cols = {r[1] for r in cx.execute("PRAGMA table_info(audit_log)")}
+                    if "fondement" not in cols:
+                        cx.execute("ALTER TABLE audit_log ADD COLUMN fondement REAL")
         except Exception:
-            logger.exception("Audit : initialisation impossible (%s)", self.path)
+            logger.exception("Audit : initialisation impossible (%s)",
+                             "PostgreSQL" if self._pg else self.path)
 
     @contextmanager
     def _connexion(self):
         """Connexion qui valide (commit) puis se FERME a la sortie : le
         context manager natif de sqlite3 ne ferme pas la connexion."""
+        if self._pg:
+            raw = psycopg.connect(self.url, row_factory=dict_row, connect_timeout=5)
+            try:
+                yield _CxPg(raw)
+                raw.commit()
+            except Exception:
+                raw.rollback()
+                raise
+            finally:
+                raw.close()
+            return
         cx = sqlite3.connect(self.path, timeout=5)
         cx.row_factory = sqlite3.Row
         try:
