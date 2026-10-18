@@ -260,8 +260,8 @@ ni renvoye par l'API. Une ligne = une unite ; une puce imbriquee sans citation
 herite de celle de la puce suivante du meme niveau, dans le meme bloc. Le
 controle verifie la presence d'une citation valide et que les nombres d'au
 moins 2 chiffres figurent dans les extraits cites (nombres en lettres
-convertis). Il ne verifie pas : le contexte de section (cas de l'article 502,
-note 1,0 alors que l'attribution etait trompeuse), l'exhaustivite, la fidelite
+convertis). Il ne verifie pas : le contexte de section (cas de l'article 502 : le
+chiffre figure dans l'extrait, l'erreur de contexte n'est donc pas detectee), l'exhaustivite, la fidelite
 du sens, ni une mauvaise attribution entre sources citees. Une phrase de
 conclusion sans fait compte comme non citee. Le critere lexical signale
 presque tout (8 unites sur 10 sur une reponse longue) : il reste hors score,
