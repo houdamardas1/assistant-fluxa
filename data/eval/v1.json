@@ -481,6 +481,32 @@
         "HORS_PERIMETRE",
         "CLARIFICATION"
       ]
+    },
+    {
+      "id": "rh_dommages_licenciement_abusif",
+      "role": "rh",
+      "statut": "verifie",
+      "question": "Quelles sont les règles du licenciement abusif ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf",
+      "expected_departement": "rh",
+      "expected_contains": [
+        "mois et demi",
+        "par ann"
+      ]
+    },
+    {
+      "id": "rh_dommages_montant_licenciement",
+      "role": "rh",
+      "statut": "verifie",
+      "question": "Quel est le montant des dommages-intérêts en cas de licenciement abusif ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_du_Travail_Loi_65-99.pdf",
+      "expected_departement": "rh",
+      "expected_contains": [
+        "mois et demi",
+        "par ann"
+      ]
     }
   ]
 }

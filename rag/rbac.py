@@ -187,7 +187,8 @@ def search_without_rbac(query: str, model, index, metadata, top_k: int = 10):
 
 
 def check_rbac_restriction(
-    query: str, model, index, metadata, user_role: str, authorized_results: list
+    query: str, model, index, metadata, user_role: str, authorized_results: list,
+    departement_autorise: str | None = None, entreprises_nommees: set | None = None,
 ) -> bool:
     """Vrai si des documents pertinents existent mais ne sont pas
     autorises pour ce role."""
@@ -204,6 +205,20 @@ def check_rbac_restriction(
                 and r.get("score", 0) >= public_threshold
             ):
                 return False
+
+    # Question rattachee a un departement AUTORISE du role, sans entreprise
+    # nommee, et deja couverte par des textes reglementaires de CE departement :
+    # des passages plus "similaires" d'autres departements (ex. Code des
+    # obligations pour un RH) n'opposent pas de veto. La reponse n'est construite
+    # qu'avec les passages autorises.
+    if departement_autorise and not entreprises_nommees:
+        if any(
+            r.get("type_document") == "public_reglementaire"
+            and r.get("departement") == departement_autorise
+            and r.get("score", 0) >= 0.45
+            for r in authorized_results
+        ):
+            return False
 
     tous = search_without_rbac(query, model, index, metadata, top_k=10)
 

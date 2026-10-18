@@ -90,8 +90,15 @@ def _pipeline_rag(
     )
     max_score = max((r.get("score", 0.0) for r in results), default=0.0)
 
-    if check_rbac_restriction(query, model, index, metadata, user_role, results):
-        noms = {c.get("entreprise") for c in metadata if c.get("entreprise")}
+    noms = {c.get("entreprise") for c in metadata if c.get("entreprise")}
+    if check_rbac_restriction(
+        query, model, index, metadata, user_role, results,
+        departement_autorise=(
+            ctx_dept if ctx_dept and not department_access_denied(user_role, ctx_dept)
+            else None
+        ),
+        entreprises_nommees=detect_entreprises(query, noms),
+    ):
         return _resultat(
             message_refus_acces(
                 user_role,
