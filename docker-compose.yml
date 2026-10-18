@@ -8,12 +8,17 @@
     restart: unless-stopped
     ports:
       - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       # Les deux bases SQLite vont dans le volume persistant ci-dessous.
       AUDIT_DB_PATH: data/db/audit.db
       USERS_DB_PATH: data/db/users.db
+      # PostgreSQL (reseau Docker) : audit + utilisateurs. Vide = SQLite.
+      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     volumes:
       # Index FAISS en lecture seule (lourd, rarement modifie)
       - ./data/index:/app/data/index:ro
