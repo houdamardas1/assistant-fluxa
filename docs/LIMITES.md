@@ -1,4 +1,4 @@
-# Limites connues - v8 (17/10/2026)
+# Limites connues - v9 (18/10/2026)
 
 ## 1. Quota Groq (tier gratuit)
 
@@ -208,8 +208,71 @@ dediee.
 
 Les depots n'ont pas de remote GitHub ; pas d'integration continue ; pas de
 deploiement cloud (le dossier Bicep est vide). L'application tourne en
-conteneurs en local (API + interface nginx) avec les bases SQLite dans un
+conteneurs en local (API + interface nginx) avec PostgreSQL (audit et utilisateurs ; SQLite en repli si PG_DSN est vide) dans un
 volume nomme. Les mots de passe des comptes de demonstration sont locaux et
 doivent etre regeneres avant tout partage ou deploiement. Un avertissement
 de longueur de cle JWT (40 octets) apparait dans les tests ; son origine
 (cle de test) n'a pas ete verifiee.
+
+## 14. Infrastructure PostgreSQL
+
+L'audit et les utilisateurs sont dans PostgreSQL quand PG_DSN est defini ; sans
+PG_DSN (ou avec un chemin injecte, cas des tests) on retombe sur SQLite.
+Le port hote est 15432 car 5432 et 5433 sont occupes par des PostgreSQL
+Windows locaux ; pgAdmin web (127.0.0.1:5050) est optionnel. Apres un
+redemarrage du PC ou de Docker : `docker compose up -d` (pas `restart api`),
+l'API attend que postgres soit "healthy". Pas de pool de connexions (une
+connexion par appel), pas de retention de l'audit (voir section 3), et la
+classe d'adaptation PG est dupliquee dans audit.py. Les secrets sont dans
+.env (jamais versionne) ; les mots de passe de demonstration doivent etre
+changes avant tout partage.
+
+## 15. Extraits tronques aux sauts de page
+
+Le decoupage se fait par page : la derniere phrase d'une page n'a pas de
+chevauchement avec la suivante. Le script patch_continuations.py complete ces
+extraits, pour les textes reglementaires uniquement (43 extraits) : applique a
+tous les types il a corrompu les documents Wafa Assurance (mise en page a
+plusieurs colonnes). Il modifie data/index/metadata.json, non versionne
+(sauvegarde .bak_continuation) : il faut le rejouer, comme
+patch_departements_v2.py, apres toute reindexation. Il ne traite que le cas
+page suivante du meme fichier commencant par une minuscule.
+Non corrige : un extrait ne porte pas le titre de sa section. Cas constate
+(article 502) : les durees d'essai du travail temporaire ont ete presentees
+comme "contrats de courte duree".
+
+## 16. Refus RBAC : veto assoupli
+
+Avant, check_rbac_restriction refusait des que trois extraits pertinents
+appartenaient a un autre departement. Il ne refuse plus si les trois conditions
+suivantes sont reunies : un departement est deduit pour l'utilisateur, aucune
+entreprise n'est nommee dans la question, et un extrait public_reglementaire
+autorise de ce departement a un score >= 0,45. Mesure sur le jeu de cas du
+harnais : faux refus de 50 % a 0 %, sans regression sur les 16 cas de refus.
+Risque residuel non mesure : une question visant les donnees d'un autre
+departement, sans nom d'entreprise, pourrait passer si un texte reglementaire
+du departement de l'utilisateur obtient un score eleve.
+
+## 17. Controle de fondement (observation seulement)
+
+Le score est stocke dans la colonne audit "fondement" ; il n'est pas affiche
+ni renvoye par l'API. Une ligne = une unite ; une puce imbriquee sans citation
+herite de celle de la puce suivante du meme niveau, dans le meme bloc. Le
+controle verifie la presence d'une citation valide et que les nombres d'au
+moins 2 chiffres figurent dans les extraits cites (nombres en lettres
+convertis). Il ne verifie pas : le contexte de section (cas de l'article 502,
+note 1,0 alors que l'attribution etait trompeuse), l'exhaustivite, la fidelite
+du sens, ni une mauvaise attribution entre sources citees. Une phrase de
+conclusion sans fait compte comme non citee. Le critere lexical signale
+presque tout (8 unites sur 10 sur une reponse longue) : il reste hors score,
+non calibre. Peu de cas mesures (quatre reponses) et generation non
+deterministe : le score varie d'une execution a l'autre.
+
+## 18. Autres limites constatees
+
+Reponses longues pour des questions generales. Detection de departement en
+francais seulement : inj_rh_arabe et inj_rh_role_sans_motcle repondent en mode
+GENERAL au lieu d'etre refuses. Mots-cles Finance sans effet sur les questions
+textuelles Auto Nejma ou Unimer. Les criteres du harnais d'evaluation ne
+normalisent pas les nombres ecrits en lettres. Sous Windows, les sorties
+console exigent PYTHONUTF8=1.
