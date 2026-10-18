@@ -102,12 +102,36 @@ def _nombres_en_lettres(texte: str) -> set:
     return trouves
 
 
+def _indent(ligne: str) -> int:
+    return len(ligne) - len(ligne.lstrip(" \t"))
+
+
+def _citation_heritee(lignes: List[str], i: int) -> str:
+    """Citation d'une puce imbriquee (indentee) sans citation propre : celle de la
+    premiere puce suivante du MEME niveau, dans le meme bloc (pas de ligne vide).
+    Les puces de premier niveau n'heritent de rien."""
+    if RE_CITATION.search(lignes[i]) or not RE_PUCE.match(lignes[i]):
+        return ""
+    niveau = _indent(lignes[i])
+    if niveau == 0:
+        return ""
+    for suite in lignes[i + 1:]:
+        if not suite.strip() or _indent(suite) < niveau:
+            return ""
+        if _indent(suite) == niveau and RE_PUCE.match(suite):
+            trouvees = [m.group(0) for m in RE_CITATION.finditer(suite)]
+            if trouvees:
+                return " ".join(trouvees)
+    return ""
+
+
 def verifier_fondement(texte: str, rag_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     nb = len(rag_results or [])
     unites = supportees = non_citees = nombres_nok = lexical_nok = 0
     details: List[Dict[str, Any]] = []
 
-    for ligne in (texte or "").splitlines():
+    lignes = (texte or "").splitlines()
+    for i, ligne in enumerate(lignes):
         brut = RE_PUCE.sub("", ligne).strip()
         if not brut or brut.endswith(":"):
             continue
@@ -118,7 +142,7 @@ def verifier_fondement(texte: str, rag_results: List[Dict[str, Any]]) -> Dict[st
 
         cites = sorted({
             int(n)
-            for m in RE_CITATION.finditer(brut)
+            for m in RE_CITATION.finditer(brut + " " + _citation_heritee(lignes, i))
             for n in re.findall(r"\d+", m.group(0))
             if 1 <= int(n) <= nb
         })
