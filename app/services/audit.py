@@ -3,7 +3,7 @@ Journal d'audit (SQLite, stdlib). Meme schema que celui prevu pour PostgreSQL :
 la migration ne changera que la connexion.
 
 Evenements : ACCESS_GRANTED, ACCESS_DENIED, NO_ANSWER, CLARIFICATION_REQUESTED,
-LOGIN, AUTH_FAILED, RATE_LIMITED, QUOTA_ERROR, ERROR, ADMIN_DENIED.
+LOGIN, AUTH_FAILED, RATE_LIMITED, QUOTA_ERROR, ERROR, ADMIN_DENIED, PROMPT_BLOCKED.
 
 record() ne leve JAMAIS : une panne d'audit est journalisee (logging) mais ne
 bloque pas la reponse (choix de POC ; en production, decider fail-open ou
@@ -28,7 +28,8 @@ except ImportError:  # SQLite seul : psycopg facultatif
 
 logger = logging.getLogger(__name__)
 
-REQUETES = ("ACCESS_GRANTED", "ACCESS_DENIED", "NO_ANSWER", "CLARIFICATION_REQUESTED")
+REQUETES = ("ACCESS_GRANTED", "ACCESS_DENIED", "NO_ANSWER", "CLARIFICATION_REQUESTED",
+            "PROMPT_BLOCKED")
 ERREURS = ("ERROR", "QUOTA_ERROR")
 
 _SCHEMA = """
@@ -259,6 +260,7 @@ class AuditLog:
                 "granted": c.get("ACCESS_GRANTED", 0),
                 "denied": c.get("ACCESS_DENIED", 0),
                 "no_answer": c.get("NO_ANSWER", 0),
+                "blocked": c.get("PROMPT_BLOCKED", 0),
                 "errors": sum(c.get(e, 0) for e in ERREURS),
             })
         return serie

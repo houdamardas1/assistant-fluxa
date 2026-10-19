@@ -13,6 +13,7 @@ from app.security.deps import client_ip, get_principal
 from app.services.rag_service import event_for_mode, to_public
 from rag.llm import QuotaError
 from rag.messages import MESSAGE_QUOTA
+from rag.security import MESSAGE_BLOQUE, detecter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Assistant"])
@@ -64,6 +65,17 @@ def ask(
             detail="Trop de requetes. Reessayez dans un instant.",
             headers={"Retry-After": str(state.limiter.retry_after(cle))},
         )
+
+    verdict = detecter(body.question)
+    if verdict.bloque:
+        # Filtre d'entree : rien n'est envoye au modele.
+        state.audit.record(
+            "PROMPT_BLOCKED", rid, question=body.question, mode="HORS_PERIMETRE",
+            detail=f"{verdict.categorie}:{verdict.regle}", answer=MESSAGE_BLOQUE,
+            latency_ms=0, **qui,
+        )
+        return AskResponse(request_id=rid, answer=MESSAGE_BLOQUE, mode="HORS_PERIMETRE",
+                           departement=None, confidence=0.0, sources=[])
 
     debut = time.perf_counter()
 
