@@ -310,3 +310,19 @@ Les tokens du générateur et du vérificateur sont comptés pour chaque requêt
 Le score affiché dans l'interface est calculé (pas estimé par le modèle) : part des affirmations factuelles de la réponse qui sont citées et dont tous les nombres figurent dans les extraits cités. Il ne vérifie pas le sens : une phrase citée peut contenir un contresens sans chiffre et être comptée comme fondée. Sans affirmation vérifiable ou hors RAG simple, l'interface retombe sur la confiance du vérificateur LLM, qui est une estimation du modèle.
 
 Comparaisons (mode MULTI_INTENT) : le score de fondement n'est pas calculé et aucun score n'est affiché (un 0 % serait trompeur). La comparaison peut aussi tenter une différence entre deux indicateurs de nature différente (par exemple chiffre d'affaires et résultat net) : elle l'indique quand les deux valeurs ne sont pas extraites avec certitude, mais ne refuse pas la comparaison elle-même.
+
+## 24. Pages scannées sans texte (couverture des rapports)
+
+Mesure faite sur les PDF sources : certaines pages sont des images sans texte extractible, donc absentes de l'index et invisibles pour l'assistant.
+
+| Document | Pages sans texte |
+|---|---|
+| CDG Capital (RFA 2024) | 114 sur 178 (64 %) |
+| Wafa Assurance (RFA 2025) | 24 sur 154 (16 %) |
+| DNSSI | 4 sur 40 (10 %) |
+| Unimer, Auto Nejma | 1 chacun |
+| Codes et lois (4 documents) | 0 |
+
+Pour CDG, ce sont les pages du rapport des commissaires aux comptes et des annexes des états financiers consolidés (immobilisations, créances, charges d'exploitation), scannées avec tampons. Conséquence : une question portant sur un détail qui n'est que dans ces pages reçoit « information absente » alors qu'il figure dans le PDF.
+
+Test d'OCR (EasyOCR, français) sur des pages réelles : la note 5.1.9 est lue avec une confiance moyenne de 0,80 mais avec une erreur de chiffre non détectable (18 170 lu 18 770, confiance 0,87) ; la note « créances sur la clientèle » est lue avec une confiance moyenne de 0,54 et des libellés illisibles. Décision : les chiffres OCR ne sont pas ajoutés à l'index, car une valeur fausse présentée comme sourcée est plus grave qu'une absence de réponse, et le score de fondement comparerait la réponse à l'OCR lui-même. Piste : valider l'OCR par relecture humaine, ou utiliser les fichiers sources (Excel, XBRL) des états financiers.
