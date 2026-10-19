@@ -40,6 +40,7 @@ class AskResponse(BaseModel):
     mode: str
     departement: Optional[str] = None
     confidence: float
+    fondement: Optional[float] = None
     sources: List[Source]
 
 

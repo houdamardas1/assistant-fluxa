@@ -303,3 +303,8 @@ Les tokens du générateur et du vérificateur sont comptés pour chaque requêt
 - Sensibilité au vocabulaire : « exigences de sauvegarde » aboutit, « règles de sauvegarde » donne parfois « information absente ».
 - Latence p95 de 13 à 25 s, probablement due aux attentes de quota du fournisseur.
 - Hors périmètre de cette version : mode de réponse approfondi, accès par thème, jeu de données IT synthétique.
+
+
+## 23. Score de fondement
+
+Le score affiché dans l'interface est calculé (pas estimé par le modèle) : part des affirmations factuelles de la réponse qui sont citées et dont tous les nombres figurent dans les extraits cités. Il ne vérifie pas le sens : une phrase citée peut contenir un contresens sans chiffre et être comptée comme fondée. Sans affirmation vérifiable ou hors RAG simple, l'interface retombe sur la confiance du vérificateur LLM, qui est une estimation du modèle.

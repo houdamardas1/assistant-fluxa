@@ -45,6 +45,7 @@ def to_public(result: dict) -> dict:
         "mode": result["mode"],
         "departement": result.get("departement"),
         "confidence": round(float(result.get("confidence", 0.0)), 2),
+        "fondement": (result.get("fondement") or {}).get("score"),
         "sources": sources,
     }
 
