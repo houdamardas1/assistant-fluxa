@@ -52,6 +52,7 @@ export function eventMeta(type: string): { label: string; tone: Tone } {
     case 'QUOTA_ERROR': return { label: 'Quota du modèle', tone: 'warn' }
     case 'ERROR': return { label: 'Erreur', tone: 'danger' }
     case 'PROMPT_BLOCKED': return { label: 'Bloqu\u00e9', tone: 'danger' }
+    case 'DOCUMENT_BLOCKED': return { label: 'Document \u00e9cart\u00e9', tone: 'warn' }
     case 'ADMIN_DENIED': return { label: 'Admin refusé', tone: 'danger' }
     default: return { label: type, tone: 'neutral' }
   }
