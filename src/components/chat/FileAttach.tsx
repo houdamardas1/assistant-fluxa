@@ -1,7 +1,7 @@
 import { useRef, type ChangeEvent } from 'react'
 import type { FileInfo } from '../../lib/types'
 
-export const ACCEPT = '.pdf,.docx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp'
+export const ACCEPT = '.pdf,.docx,.xlsx,.pptx,.txt,.md,.log,.csv,.tsv,.json,.html,.htm,.xml,.png,.jpg,.jpeg,.webp'
 
 function Clip({ size = 20 }: { size?: number }) {
   return (
@@ -39,7 +39,7 @@ export function FileAttachButton({ onPick, disabled }: { onPick: (f: File) => vo
       <input ref={ref} type="file" accept={ACCEPT} className="hidden" onChange={change} />
       <button
         type="button" disabled={disabled} onClick={() => ref.current?.click()}
-        aria-label="Joindre un fichier" title="Joindre un fichier (PDF, Word, TXT, CSV, image)"
+        aria-label="Joindre un fichier" title="Joindre un fichier (PDF, Word, Excel, PowerPoint, texte, image)"
         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-line/60 hover:text-ink disabled:opacity-40"
       >
         <Clip />
@@ -71,7 +71,7 @@ export function FileChip({ attachment, uploading, error, onRemove }: {
   }
   if (!attachment) return null
   const estImage = ['png', 'jpg', 'jpeg', 'webp'].includes(attachment.type)
-  const detail = estImage ? 'image' : `${attachment.pages} ${attachment.type === 'pdf' ? 'page(s)' : 'section(s)'}`
+  const detail = estImage ? 'image' : `${attachment.pages} ${attachment.type === 'pdf' ? 'page(s)' : attachment.type === 'pptx' ? 'diapositive(s)' : 'section(s)'}`
   return (
     <div className="mb-2 rounded-xl border border-brand/30 bg-brand/5 px-3 py-2 text-sm">
       <div className="flex items-center gap-2">

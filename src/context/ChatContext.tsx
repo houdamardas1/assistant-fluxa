@@ -73,13 +73,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setUploading(true)
     setUploadError(null)
     try {
-      setAttachment(await api.uploadFile(file))
+      const info = await api.uploadFile(file)
+      if (attachment) api.deleteFile(attachment.file_id).catch(() => undefined)
+      setAttachment(info)
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : 'Téléversement impossible.')
     } finally {
       setUploading(false)
     }
-  }, [])
+  }, [attachment])
 
   const detach = useCallback(() => {
     if (attachment) api.deleteFile(attachment.file_id).catch(() => undefined)
