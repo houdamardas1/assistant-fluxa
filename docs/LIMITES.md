@@ -276,3 +276,30 @@ GENERAL au lieu d'etre refuses. Mots-cles Finance sans effet sur les questions
 textuelles Auto Nejma ou Unimer. Les criteres du harnais d'evaluation ne
 normalisent pas les nombres ecrits en lettres. Sous Windows, les sorties
 console exigent PYTHONUTF8=1.
+
+## 19. Injection de prompt et limites du filtrage
+
+**Filtre d'entrée (lexical).** Des règles FR / EN / AR / darija bloquent, avant tout appel au modèle, les demandes d'ignorer les consignes, de révéler le prompt système, d'exfiltrer des données ou de s'octroyer des droits (événement `PROMPT_BLOCKED`, mode `BLOQUE`). C'est une première barrière, pas une garantie : une reformulation, une langue non couverte ou une faute volontaire peut passer. Le rôle vient du jeton, jamais de la question.
+
+**Injection indirecte (consignes cachées dans un document).** Trois couches indépendantes :
+1. *Filtre d'extraits* avant vérification et génération (événement `DOCUMENT_BLOCKED`). Il utilise un sous-ensemble plus strict de règles : « ignorer les instructions » ou « contourner les règles de sécurité » sont écartées pour les extraits, car ces formulations existent dans de vrais textes (politiques, contrats). Le filtre s'applique aux passages candidats, pas à l'ingestion.
+2. *Prompt* : les extraits sont déclarés données non fiables (règle 11).
+3. *Validation de sortie* : une réponse qui reprend des morceaux du prompt système est remplacée par un refus. Elle ne détecte pas d'autres détournements (lien ou texte ajouté).
+
+Mesures réelles (index et Groq réels) : sans le patch, deux consignes cachées réussissaient (mot imposé en fin de réponse, recopie du prompt). Le seul durcissement du prompt arrête la première mais pas la seconde ; le filtre d'extraits retire un vrai passage empoisonné (DNSSI p. 9) sans changer la réponse. Le scan des 2 960 passages du corpus ne signale aucun faux positif. Aucune garantie contre une consigne reformulée hors des règles.
+
+## 20. Contrôle d'accès : compromis connus
+
+- Le veto « implicite » (question sans entreprise nommée) n'écarte que les extraits interdits dont le score dépasse `SEUIL_VETO_IMPLICITE` (0,70), sauf si un document interdit est nommé dans la question. Abaisser le seuil réduit les faux refus mais augmente le risque de fuite ; le monter fait l'inverse.
+- Certaines questions juridiques vagues sont désormais traitées en mode GENERAL (connaissances générales du modèle, sans citation de source) : risque d'hallucination, signalé par le mode affiché.
+- La détection de département ne fonctionne qu'en français.
+
+## 21. Mesure des tokens et du coût
+
+Les tokens du générateur et du vérificateur sont comptés pour chaque requête. L'audit ne conserve qu'un seul nom de modèle par requête (celui de la génération) ; si `GROQ_VERIFY_MODEL` diffère de `GROQ_MODEL`, les tokens du vérificateur sont attribués au modèle de génération. Le coût est une estimation à partir de `LLM_PRICE_IN_PER_M` et `LLM_PRICE_OUT_PER_M` (non renseignés = coût non affiché). Le comptage n'est pas encore rapproché de la console du fournisseur.
+
+## 22. Qualité des réponses et pistes futures
+
+- Sensibilité au vocabulaire : « exigences de sauvegarde » aboutit, « règles de sauvegarde » donne parfois « information absente ».
+- Latence p95 de 13 à 25 s, probablement due aux attentes de quota du fournisseur.
+- Hors périmètre de cette version : mode de réponse approfondi, accès par thème, jeu de données IT synthétique.
