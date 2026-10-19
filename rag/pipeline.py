@@ -35,6 +35,7 @@ from .messages import (
     MESSAGE_DEPARTEMENT_VIDE,
     message_refus_acces,
 )
+from .documents_nommes import corriger_type_question
 from .rbac import (
     check_rbac_restriction,
     departement_a_corpus_reel,
@@ -162,6 +163,7 @@ def _pipeline_rag(
         confidence = min(confidence, 0.4)
 
     q_type = classify_question(query, results, can_answer, verify_error)
+    q_type = corriger_type_question(q_type, results, can_answer)
 
     rag_results = []
     cited_sources = []

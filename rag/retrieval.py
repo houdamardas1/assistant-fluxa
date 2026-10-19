@@ -137,6 +137,19 @@ def search(
     noms_connus = {c.get("entreprise") for c in metadata if c.get("entreprise")}
     entreprises_visees = detect_entreprises(query, noms_connus)
 
+    from .documents_nommes import detect_documents_nommes
+
+    documents_vises = (
+        set() if entreprises_visees else detect_documents_nommes(
+            query,
+            {
+                c.get("fichier_source") for c in metadata
+                if c.get("type_document") == "public_reglementaire"
+                and c.get("fichier_source") and est_accessible(c, user_role)
+            },
+        )
+    )
+
     resultats = []
     vus = set()
     pool_metrique, pool_generique, pool_sectoriel, pool_temporel = [], [], [], []
@@ -144,6 +157,9 @@ def search(
     for idx, chunk in enumerate(metadata):
 
         if not est_accessible(chunk, user_role):
+            continue
+
+        if documents_vises and chunk.get("fichier_source") not in documents_vises:
             continue
 
         type_document = chunk.get("type_document", "entreprise")
@@ -227,6 +243,7 @@ def search(
             "_terme_sectoriel": est_sectoriel,
             "_scope": detect_chunk_scope(content),
             "_temporal_status": temporal_status,
+            "_document_nomme": bool(documents_vises),
         }
 
         resultats.append(resultat)

@@ -211,6 +211,11 @@ def check_rbac_restriction(
     # des passages plus "similaires" d'autres departements (ex. Code des
     # obligations pour un RH) n'opposent pas de veto. La reponse n'est construite
     # qu'avec les passages autorises.
+    # Document reglementaire nomme et accessible : la recherche a ete limitee
+    # a ce document, les extraits d'autres documents ne sont pas vises.
+    if any(r.get("_document_nomme") for r in authorized_results):
+        return False
+
     if departement_autorise and not entreprises_nommees:
         if any(
             r.get("type_document") == "public_reglementaire"
