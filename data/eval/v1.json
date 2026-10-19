@@ -540,6 +540,37 @@
         "obligation"
       ],
       "expected_departement": "juridique"
+    },
+    {
+      "id": "faux_refus_it_vague",
+      "role": "it",
+      "statut": "a_verifier",
+      "question": "combien la fourchette que ne consomme le plus sur DNSSI",
+      "expected_mode": [
+        "ABSENT",
+        "CLARIFICATION",
+        "GENERAL"
+      ],
+      "expected_not_contains": [
+        "AUCUN exemple",
+        "valides vont de"
+      ]
+    },
+    {
+      "id": "faux_refus_juridique_vague",
+      "role": "juridique",
+      "statut": "a_verifier",
+      "question": "Quelle est la politique de loi",
+      "expected_mode": [
+        "ABSENT",
+        "CLARIFICATION",
+        "GENERAL",
+        "RAG"
+      ],
+      "expected_not_contains": [
+        "AUCUN exemple",
+        "valides vont de"
+      ]
     }
   ]
 }

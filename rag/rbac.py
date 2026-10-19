@@ -14,6 +14,13 @@ from .config import (
 )
 
 
+# Score minimal d'un passage interdit pour opposer un veto quand AUCUNE
+# entreprise n'est nommee dans la question. Mesure : des passages d'autres
+# departements a 0,55-0,65 (vocabulaire commun) ne prouvent pas que la question
+# vise un document interdit ; elle recoit alors "information absente".
+SEUIL_VETO_IMPLICITE = 0.70
+
+
 def effective_allowed_roles(chunk: dict) -> set:
     """Roles autorises a lire un chunk (RBAC strict : les textes
     reglementaires suivent les memes regles que les documents d'entreprise).
@@ -256,6 +263,9 @@ def check_rbac_restriction(
                 for r in interdits[:5]
             )
         )
+
+    if not entreprises_nommees:
+        interdits = [r for r in interdits if r["score"] >= SEUIL_VETO_IMPLICITE]
 
     if len(interdits) >= 2:
         return True
