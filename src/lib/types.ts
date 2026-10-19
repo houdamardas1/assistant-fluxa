@@ -18,7 +18,7 @@ export interface LoginResponse {
 }
 
 export type Mode =
-  | 'RAG' | 'MULTI_INTENT' | 'GENERAL' | 'ABSENT' | 'HORS_PERIMETRE' | 'CLARIFICATION'
+  | 'RAG' | 'MULTI_INTENT' | 'GENERAL' | 'ABSENT' | 'HORS_PERIMETRE' | 'BLOQUE' | 'CLARIFICATION'
 
 export interface Source {
   verifie?: boolean

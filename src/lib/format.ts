@@ -34,6 +34,7 @@ export function modeMeta(mode: Mode | string | null | undefined): { label: strin
     case 'GENERAL': return { label: 'Réponse générale', tone: 'neutral' }
     case 'ABSENT': return { label: 'Information absente', tone: 'warn' }
     case 'HORS_PERIMETRE': return { label: 'Accès non autorisé', tone: 'danger' }
+    case 'BLOQUE': return { label: 'Demande bloqu\u00e9e', tone: 'danger' }
     case 'CLARIFICATION': return { label: 'Précision nécessaire', tone: 'info' }
     default: return { label: mode ? String(mode) : '—', tone: 'neutral' }
   }
@@ -50,6 +51,7 @@ export function eventMeta(type: string): { label: string; tone: Tone } {
     case 'RATE_LIMITED': return { label: 'Limite de débit', tone: 'warn' }
     case 'QUOTA_ERROR': return { label: 'Quota du modèle', tone: 'warn' }
     case 'ERROR': return { label: 'Erreur', tone: 'danger' }
+    case 'PROMPT_BLOCKED': return { label: 'Bloqu\u00e9', tone: 'danger' }
     case 'ADMIN_DENIED': return { label: 'Admin refusé', tone: 'danger' }
     default: return { label: type, tone: 'neutral' }
   }

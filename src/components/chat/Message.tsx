@@ -116,6 +116,7 @@ function SourceCard({ source, domId, highlighted, index }: { source: Source; dom
 const SPECIAL: Partial<Record<Mode, { panel: string; icon: IconName; iconClass: string }>> = {
   ABSENT: { panel: 'border-warn/30 bg-warn/5', icon: 'alert', iconClass: 'text-warn' },
   HORS_PERIMETRE: { panel: 'border-danger/30 bg-danger/5', icon: 'lock', iconClass: 'text-danger' },
+  BLOQUE: { panel: 'border-danger/30 bg-danger/5', icon: 'shield', iconClass: 'text-danger' },
   CLARIFICATION: { panel: 'border-info/30 bg-info/5', icon: 'sparkles', iconClass: 'text-info' },
 }
 

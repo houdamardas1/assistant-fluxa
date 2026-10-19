@@ -73,8 +73,9 @@ export default function Dashboard() {
             {(summary.error || series.error) && (
               <ErrorBox message={(summary.error ?? series.error)!.message} onRetry={() => { summary.reload(); series.reload() }} />
             )}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard label="Accès refusés" value={sum ? sum.counts.ACCESS_DENIED ?? 0 : null} icon="shield" hint="tentatives hors périmètre" />
+              <KpiCard label={'Bloqu\u00e9es'} value={sum ? sum.counts.PROMPT_BLOCKED ?? 0 : null} icon="alert" delay={0.03} hint={'injections et fuites bloqu\u00e9es'} />
               <KpiCard label="Sans réponse" value={sum ? sum.counts.NO_ANSWER ?? 0 : null} icon="alert" delay={0.05} hint="information absente" />
               <KpiCard label="Latence moyenne" value={sum?.latency.avg_ms ?? null} suffix="ms" icon="clock" delay={0.1} hint={sum ? `sur ${sum.latency.n} requêtes` : undefined} />
               <KpiCard label="Latence p95" value={sum?.latency.p95_ms ?? null} suffix="ms" icon="clock" delay={0.15} hint="95 % des requêtes plus rapides" />
