@@ -13,7 +13,7 @@ from app.security.deps import client_ip, get_principal
 from app.services.rag_service import event_for_mode, to_public
 from rag.llm import QuotaError, mesurer_usage
 from rag.messages import MESSAGE_QUOTA
-from rag.security import MESSAGE_BLOQUE, detecter
+from rag.security import MESSAGE_BLOQUE, detecter, mesurer_blocages
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Assistant"])
@@ -80,7 +80,7 @@ def ask(
     debut = time.perf_counter()
 
     try:
-        with mesurer_usage() as usage:
+        with mesurer_usage() as usage, mesurer_blocages() as docs_bloques:
             resultat = state.rag.ask(body.question, principal.role)
     except QuotaError:
         state.audit.record("QUOTA_ERROR", rid, question=body.question, **qui)
@@ -102,5 +102,14 @@ def ask(
         fondement=(resultat.get("fondement") or {}).get("score"),
         **usage.as_audit(), **qui,
     )
+
+    # Extraits retires par le filtre d'injection indirecte : un evenement
+    # d'audit par extrait, rattache a la meme requete.
+    for d in docs_bloques:
+        state.audit.record(
+            "DOCUMENT_BLOCKED", rid, question=body.question, mode=public["mode"],
+            detail=f"{d['categorie']}:{d['regle']} {d['fichier']} p.{d['page']}",
+            **qui,
+        )
 
     return AskResponse(request_id=rid, **public)
