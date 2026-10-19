@@ -507,6 +507,18 @@
         "mois et demi",
         "par ann"
       ]
+    },
+    {
+      "id": "jur_dispositions_doc_nomme",
+      "role": "juridique",
+      "statut": "a_verifier",
+      "question": "Quelles sont les principales dispositions de Code Obligations Contrats DOC ?",
+      "expected_mode": "RAG",
+      "expected_source": "Code_Obligations_Contrats_DOC.pdf",
+      "expected_contains": [
+        "obligation"
+      ],
+      "expected_departement": "juridique"
     }
   ]
 }

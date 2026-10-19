@@ -60,3 +60,6 @@ dist/
 
 # Les tests du dossier tests/ sont toujours suivis, meme s'ils commencent par test_p
 !tests/test_*.py
+
+data/eval/smoke_ui_*.json
+tests_interface.md
