@@ -326,3 +326,23 @@ Mesure faite sur les PDF sources : certaines pages sont des images sans texte ex
 Pour CDG, ce sont les pages du rapport des commissaires aux comptes et des annexes des états financiers consolidés (immobilisations, créances, charges d'exploitation), scannées avec tampons. Conséquence : une question portant sur un détail qui n'est que dans ces pages reçoit « information absente » alors qu'il figure dans le PDF.
 
 Test d'OCR (EasyOCR, français) sur des pages réelles : la note 5.1.9 est lue avec une confiance moyenne de 0,80 mais avec une erreur de chiffre non détectable (18 170 lu 18 770, confiance 0,87) ; la note « créances sur la clientèle » est lue avec une confiance moyenne de 0,54 et des libellés illisibles. Décision : les chiffres OCR ne sont pas ajoutés à l'index, car une valeur fausse présentée comme sourcée est plus grave qu'une absence de réponse, et le score de fondement comparerait la réponse à l'OCR lui-même. Piste : valider l'OCR par relecture humaine, ou utiliser les fichiers sources (Excel, XBRL) des états financiers.
+
+## 25. Analyse de fichiers téléversés
+
+**Périmètre.** PDF (80 pages et 5 Mo au maximum), Word (.docx), TXT, MD, CSV et images PNG, JPG, WebP. Les PDF protégés par mot de passe, les faux formats (contrôle des premiers octets) et les archives Word anormalement volumineuses sont refusés. Aucun antivirus n'est exécuté.
+
+**Éphémère, en mémoire.** Le fichier vit 30 minutes dans la mémoire du processus de l'API (3 fichiers par utilisateur au maximum). Il n'est jamais écrit sur disque ni en base, et il n'est pas ajouté à l'index. Il disparaît au redémarrage de l'API. Cette mémoire n'est pas partagée entre plusieurs instances : en production avec plusieurs réplicas, il faudrait un stockage de session partagé (par exemple Redis) ou un affinage de session.
+
+**Le contenu du fichier est une donnée non fiable.** Chaque ligne puis chaque extrait passent par le filtre d'injection indirecte (§ 19 à 22) ; les passages suspects sont écartés, signalés à l'utilisateur et audités (DOCUMENT_BLOCKED). Le filtre est lexical : une consigne reformulée ou écrite dans une langue non couverte peut passer. Le prompt de génération (règle 11) et la validation de sortie constituent les deux autres couches.
+
+**Sélection des extraits lexicale.** Les passages utilisés pour répondre sont choisis par recoupement de mots (pondération par rareté), sans embeddings. Une question formulée avec des synonymes absents du fichier peut recevoir « je ne trouve pas cette information » à tort. Un résumé d'un long document s'appuie sur 6 extraits répartis, donc il est partiel.
+
+**CSV et chiffres.** L'assistant lit et cite les lignes ; il ne calcule pas (somme, moyenne). Le modèle n'a pas à calculer des nombres (principe du projet).
+
+**Images et PDF scannés.** Le texte est lu par un modèle de vision externe (Groq, `qwen/qwen3.8-27b`, modifiable avec `VISION_MODEL`). L'image quitte donc l'API pour être traitée par ce fournisseur : c'est le seul cas où le contenu d'un fichier sort du système, et il doit être mentionné à l'utilisateur. Une erreur de lecture (chiffre mal lu) n'est pas détectable ; le score de fondement est donc masqué pour les passages issus de la vision et une mention « vérifiez les chiffres sur l'original » est affichée. Tests réalisés : images synthétiques nettes et inclinées de 2°, PDF scanné simulé, image piégée ; chiffres exacts (18 170, 2 340, 412). Une transcription de photo inclinée a produit du texte dupliqué en fragments. Non testés : manuscrits, tableaux complexes, mauvaise qualité, langues autres que le français. Les PDF scannés sont limités à 6 pages lues par fichier.
+
+**Audit et contrôle d'accès.** L'audit conserve le nom (assaini), le type, la taille, l'empreinte SHA-256 tronquée, le nombre de pages, d'extraits et d'extraits écartés, jamais le contenu (FILE_UPLOADED, FILE_ANALYZED, FILE_REJECTED). Un fichier n'est accessible qu'à l'utilisateur qui l'a téléversé. La classification (PUBLIC à RESTRICTED) n'est pas appliquée aux fichiers téléversés : l'utilisateur est responsable de ce qu'il choisit d'envoyer.
+
+## 26. Rapport PDF des indicateurs
+
+Le rapport est généré sans modèle de langage, à partir de la même fonction de filtrage par profil que la page Indicateurs : il ne peut pas contenir un indicateur que le profil ne voit pas. Chaque export est audité (REPORT_EXPORTED : utilisateur, profil, nombre d'indicateurs). Limites : polices standard du PDF (caractères hors alphabet latin non garantis), pas de graphiques, dates en UTC, et les 12 indicateurs restent ceux vérifiés manuellement.
