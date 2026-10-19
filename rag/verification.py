@@ -12,7 +12,7 @@ from .finance import (
     secteur_est_assurance,
 )
 from .juridique import detect_reference_article, est_titre_article
-from .llm import QuotaError, groq_client
+from .llm import QuotaError, _compter, groq_client
 from .temporel import classify_chunk_temporal, detect_temporal_requirement
 from .textutils import mots_utiles
 
@@ -261,6 +261,7 @@ def verify_relevance(query: str, contexts: list) -> tuple:
             max_tokens=1200,
         )
 
+        _compter(response)  # tokens de la verification (appel direct, hors _chat)
         response_text = response.choices[0].message.content or ""
         _dbg(f"Verifier content : {response_text!r}")
 
