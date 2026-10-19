@@ -1,5 +1,6 @@
 """Supervision : lecture du journal d'audit, limitee au tenant de l'appelant."""
 
+import os
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -20,6 +21,21 @@ def _exiger_direction(request: Request, principal: Principal) -> None:
         raise HTTPException(status_code=403, detail="Acces reserve a la direction.")
 
 
+def _usage(audit, tenant):
+    """Tokens consommes et cout estime (prix en USD par million de tokens,
+    fournis par LLM_PRICE_IN_PER_M / LLM_PRICE_OUT_PER_M ; sinon cout inconnu)."""
+    u = audit.usage_stats(tenant)
+    u["tokens_total"] = u["tokens_in"] + u["tokens_out"]
+    u["avg_tokens"] = round(u["tokens_total"] / u["requests_llm"]) if u["requests_llm"] else None
+    try:
+        prix_in = float(os.getenv("LLM_PRICE_IN_PER_M", ""))
+        prix_out = float(os.getenv("LLM_PRICE_OUT_PER_M", ""))
+        u["cost_usd"] = round((u["tokens_in"] * prix_in + u["tokens_out"] * prix_out) / 1_000_000, 4)
+    except ValueError:
+        u["cost_usd"] = None
+    return u
+
+
 @router.get("/audit/summary")
 def audit_summary(request: Request, principal: Principal = Depends(get_principal)):
     _exiger_direction(request, principal)
@@ -29,6 +45,7 @@ def audit_summary(request: Request, principal: Principal = Depends(get_principal
         "counts": audit.counts(tenant_id=tenant),
         "latency": audit.latency_stats(tenant),
         "by_role": audit.counts_by_role(tenant),
+        "usage": _usage(audit, tenant),
     }
 
 

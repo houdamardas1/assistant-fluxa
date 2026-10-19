@@ -117,6 +117,8 @@ class AuditLog:
                 with self._connexion() as cx:
                     cx.execute(_SCHEMA_PG)
                     cx.execute("ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS fondement DOUBLE PRECISION")
+                    for col, typ in (("model", "TEXT"), ("tokens_in", "INTEGER"), ("tokens_out", "INTEGER")):
+                        cx.execute(f"ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS {col} {typ}")
             else:
                 Path(self.path).parent.mkdir(parents=True, exist_ok=True)
                 with self._connexion() as cx:
@@ -124,6 +126,9 @@ class AuditLog:
                     cols = {r[1] for r in cx.execute("PRAGMA table_info(audit_log)")}
                     if "fondement" not in cols:
                         cx.execute("ALTER TABLE audit_log ADD COLUMN fondement REAL")
+                    for col, typ in (("model", "TEXT"), ("tokens_in", "INTEGER"), ("tokens_out", "INTEGER")):
+                        if col not in cols:
+                            cx.execute(f"ALTER TABLE audit_log ADD COLUMN {col} {typ}")
         except Exception:
             logger.exception("Audit : initialisation impossible (%s)",
                              "PostgreSQL" if self._pg else self.path)
@@ -166,6 +171,9 @@ class AuditLog:
         confidence: Optional[float] = None,
         latency_ms: Optional[int] = None,
         fondement: Optional[float] = None,
+        model: Optional[str] = None,
+        tokens_in: Optional[int] = None,
+        tokens_out: Optional[int] = None,
         answer: Optional[str] = None,
         detail: Optional[str] = None,
         client_ip: Optional[str] = None,
@@ -176,15 +184,16 @@ class AuditLog:
                 cx.execute(
                     "INSERT INTO audit_log (ts, request_id, tenant_id, user_id, role, "
                     "event_type, question, mode, departement, sources, confidence, "
-                    "latency_ms, answer_excerpt, detail, client_ip, fondement) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "latency_ms, answer_excerpt, detail, client_ip, fondement, "
+                    "model, tokens_in, tokens_out) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         ts or datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
                         request_id, tenant_id, user_id, role, event_type,
                         _tronque(question), mode, departement,
                         json.dumps(sources, ensure_ascii=False) if sources is not None else None,
                         confidence, latency_ms, _tronque(answer), _tronque(detail),
-                        client_ip, fondement,
+                        client_ip, fondement, model, tokens_in, tokens_out,
                     ),
                 )
             return True
@@ -282,6 +291,23 @@ class AuditLog:
 
         return {"n": n, "avg_ms": round(sum(valeurs) / n), "p50_ms": rang(0.5),
                 "p95_ms": rang(0.95)}
+
+    def usage_stats(self, tenant_id: str) -> dict:
+        """Tokens consommes par les requetes ayant appele le modele."""
+        with self._connexion() as cx:
+            t = cx.execute(
+                "SELECT COUNT(*) AS n, COALESCE(SUM(tokens_in), 0) AS tin, "
+                "COALESCE(SUM(tokens_out), 0) AS tout FROM audit_log "
+                "WHERE tenant_id = ? AND tokens_in IS NOT NULL", (tenant_id,),
+            ).fetchone()
+            par_modele = {r["model"]: r["tok"] for r in cx.execute(
+                "SELECT model, COALESCE(SUM(tokens_in), 0) + COALESCE(SUM(tokens_out), 0) "
+                "AS tok FROM audit_log WHERE tenant_id = ? AND model IS NOT NULL "
+                "GROUP BY model", (tenant_id,),
+            )}
+        return {"requests_llm": int(t["n"]), "tokens_in": int(t["tin"]),
+                "tokens_out": int(t["tout"]),
+                "by_model": {k: int(v) for k, v in par_modele.items()}}
 
     def user_history(self, tenant_id: str, user_id: str, limit: int = 30) -> list:
         """Historique d'UN utilisateur (ses propres questions et reponses)."""

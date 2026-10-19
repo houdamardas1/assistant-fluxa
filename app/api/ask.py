@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from app.security.auth import Principal
 from app.security.deps import client_ip, get_principal
 from app.services.rag_service import event_for_mode, to_public
-from rag.llm import QuotaError
+from rag.llm import QuotaError, mesurer_usage
 from rag.messages import MESSAGE_QUOTA
 from rag.security import MESSAGE_BLOQUE, detecter
 
@@ -80,7 +80,8 @@ def ask(
     debut = time.perf_counter()
 
     try:
-        resultat = state.rag.ask(body.question, principal.role)
+        with mesurer_usage() as usage:
+            resultat = state.rag.ask(body.question, principal.role)
     except QuotaError:
         state.audit.record("QUOTA_ERROR", rid, question=body.question, **qui)
         raise HTTPException(status_code=503, detail=MESSAGE_QUOTA.replace("\n\n", " - "))
@@ -98,7 +99,8 @@ def ask(
         departement=public["departement"], sources=public["sources"],
         confidence=public["confidence"], latency_ms=latence_ms,
         answer=public["answer"],
-        fondement=(resultat.get("fondement") or {}).get("score"), **qui,
+        fondement=(resultat.get("fondement") or {}).get("score"),
+        **usage.as_audit(), **qui,
     )
 
     return AskResponse(request_id=rid, **public)

@@ -2,6 +2,9 @@
 
 import os
 import sys
+import threading
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 from groq import Groq
 from groq import RateLimitError
@@ -11,6 +14,53 @@ from .config import GROQ_MODEL, _dbg
 
 class QuotaError(Exception):
     """Quota Groq epuise (429) : ce n'est PAS une 'information absente'."""
+
+
+class Usage:
+    """Tokens consommes pendant UNE requete (somme des appels Groq)."""
+
+    def __init__(self):
+        self.appels = 0
+        self.tokens_in = 0
+        self.tokens_out = 0
+        self.model = GROQ_MODEL
+        self._lock = threading.Lock()
+
+    def ajouter(self, reponse) -> None:
+        usage = getattr(reponse, "usage", None)
+        with self._lock:
+            self.appels += 1
+            if usage is not None:
+                self.tokens_in += int(getattr(usage, "prompt_tokens", 0) or 0)
+                self.tokens_out += int(getattr(usage, "completion_tokens", 0) or 0)
+
+    def as_audit(self) -> dict:
+        """Champs d'audit ; vide si aucun appel au modele (refus, raccourci KPI)."""
+        if self.appels == 0:
+            return {}
+        return {"model": self.model, "tokens_in": self.tokens_in,
+                "tokens_out": self.tokens_out}
+
+
+_USAGE: ContextVar = ContextVar("fluxa_usage", default=None)
+
+
+@contextmanager
+def mesurer_usage():
+    """Compte les tokens des appels Groq faits dans ce bloc (meme thread)."""
+    usage = Usage()
+    jeton = _USAGE.set(usage)
+    try:
+        yield usage
+    finally:
+        _USAGE.reset(jeton)
+
+
+def _compter(reponse):
+    usage = _USAGE.get()
+    if usage is not None:
+        usage.ajouter(reponse)
+    return reponse
 
 
 def _init_groq() -> Groq:
@@ -41,6 +91,11 @@ groq_client = _init_groq()
 
 
 def _chat(messages: list, temperature: float, max_tokens: int):
+    """Appel Groq avec comptage des tokens (voir mesurer_usage)."""
+    return _compter(_chat_brut(messages, temperature, max_tokens))
+
+
+def _chat_brut(messages: list, temperature: float, max_tokens: int):
     """Appel Groq. Le modele (gpt-oss) consomme des tokens de raisonnement
     sur le budget max_tokens : on limite l'effort de reflexion pour eviter
     les reponses vides ou tronquees. Si le SDK ou le modele refuse
