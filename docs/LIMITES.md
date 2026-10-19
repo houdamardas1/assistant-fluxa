@@ -308,3 +308,5 @@ Les tokens du générateur et du vérificateur sont comptés pour chaque requêt
 ## 23. Score de fondement
 
 Le score affiché dans l'interface est calculé (pas estimé par le modèle) : part des affirmations factuelles de la réponse qui sont citées et dont tous les nombres figurent dans les extraits cités. Il ne vérifie pas le sens : une phrase citée peut contenir un contresens sans chiffre et être comptée comme fondée. Sans affirmation vérifiable ou hors RAG simple, l'interface retombe sur la confiance du vérificateur LLM, qui est une estimation du modèle.
+
+Comparaisons (mode MULTI_INTENT) : le score de fondement n'est pas calculé et aucun score n'est affiché (un 0 % serait trompeur). La comparaison peut aussi tenter une différence entre deux indicateurs de nature différente (par exemple chiffre d'affaires et résultat net) : elle l'indique quand les deux valeurs ne sont pas extraites avec certitude, mais ne refuse pas la comparaison elle-même.
