@@ -27,3 +27,12 @@ def test_entreprise_nommee_veto_maintenu(monkeypatch):
 
 def test_correspondances_fortes_sans_entreprise_veto(monkeypatch):
     assert _veto(monkeypatch, [0.75, 0.74]) is True
+
+
+def test_document_interdit_nomme_veto_meme_score_faible(monkeypatch):
+    monkeypatch.setattr(rbac, "search_without_rbac", lambda *a, **k: [
+        {"score": 0.55, "fichier_source": "Code_Obligations_Contrats_DOC.pdf", "page": i,
+         "entreprise": None, "access_roles": ["juridique"], "departement": "juridique",
+         "type_document": "public_reglementaire"} for i in (1, 2)])
+    assert rbac.check_rbac_restriction(
+        "Que dit le Code des obligations et des contrats ?", None, None, [], "rh", []) is True

@@ -1,5 +1,7 @@
 from rag import rbac
 
+QUESTION_DOC_INTERDIT = "Que dit le Code des obligations et des contrats ?"
+
 
 def _chunk(dept, roles, score, fichier, page=1, type_doc="public_reglementaire"):
     return {"fichier_source": fichier, "page": page, "departement": dept,
@@ -7,8 +9,8 @@ def _chunk(dept, roles, score, fichier, page=1, type_doc="public_reglementaire")
 
 
 def _preparer(monkeypatch):
-    interdits = [_chunk("juridique", ["juridique"], 0.67, "Obligations.pdf", 139),
-                 _chunk("juridique", ["juridique"], 0.67, "Obligations.pdf", 13),
+    interdits = [_chunk("juridique", ["juridique"], 0.67, "Code_Obligations_Contrats.pdf", 139),
+                 _chunk("juridique", ["juridique"], 0.67, "Code_Obligations_Contrats.pdf", 13),
                  _chunk("direction", ["direction"], 0.66, "Unimer.pdf", 25, "entreprise")]
     monkeypatch.setattr(rbac, "search_without_rbac", lambda *a, **k: interdits)
     monkeypatch.setattr(rbac, "effective_allowed_roles", lambda r: set(r.get("access_roles", [])))
@@ -19,13 +21,13 @@ def _autorises(score=0.53):
     return [_chunk("rh", ["rh"], score, "Travail.pdf", 43)]
 
 
-def _appel(autorises, **kw):
-    return rbac.check_rbac_restriction("q", None, None, list(autorises), "rh", autorises, **kw)
+def _appel(autorises, query="q", **kw):
+    return rbac.check_rbac_restriction(query, None, None, list(autorises), "rh", autorises, **kw)
 
 
-def test_comportement_historique_conserve(monkeypatch):
+def test_document_interdit_nomme_garde_le_veto(monkeypatch):
     _preparer(monkeypatch)
-    assert _appel(_autorises()) is True
+    assert _appel(_autorises(), query=QUESTION_DOC_INTERDIT) is True
 
 
 def test_departement_autorise_couvert_pas_de_veto(monkeypatch):
@@ -40,4 +42,4 @@ def test_entreprise_nommee_garde_le_veto(monkeypatch):
 
 def test_couverture_trop_faible_garde_le_veto(monkeypatch):
     _preparer(monkeypatch)
-    assert _appel(_autorises(0.40), departement_autorise="rh", entreprises_nommees=set()) is True
+    assert _appel(_autorises(0.40), query=QUESTION_DOC_INTERDIT, departement_autorise="rh", entreprises_nommees=set()) is True

@@ -571,6 +571,17 @@
         "AUCUN exemple",
         "valides vont de"
       ]
+    },
+    {
+      "id": "rh_doc_interdit_nomme",
+      "role": "rh",
+      "statut": "a_verifier",
+      "question": "Que dit le Code des obligations et des contrats sur la formation du contrat ?",
+      "expected_mode": "HORS_PERIMETRE",
+      "expected_not_contains": [
+        "AUCUN exemple",
+        "valides vont de"
+      ]
     }
   ]
 }

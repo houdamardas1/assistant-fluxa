@@ -265,7 +265,13 @@ def check_rbac_restriction(
         )
 
     if not entreprises_nommees:
-        interdits = [r for r in interdits if r["score"] >= SEUIL_VETO_IMPLICITE]
+        from .documents_nommes import detect_documents_nommes
+        nommes = set(detect_documents_nommes(
+            query, {r.get("fichier_source") for r in interdits if r.get("fichier_source")}))
+        interdits = [
+            r for r in interdits
+            if r["score"] >= SEUIL_VETO_IMPLICITE or r.get("fichier_source") in nommes
+        ]
 
     if len(interdits) >= 2:
         return True
