@@ -77,6 +77,8 @@ def create_app(
     app.include_router(corpus.router)
     app.include_router(documents.router)
     app.include_router(kpi.router)
+    from app.api import files as files_api  # noqa: E402
+    app.include_router(files_api.router)
     app.include_router(admin.router)
 
     @app.get("/")
