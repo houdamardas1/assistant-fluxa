@@ -43,3 +43,6 @@ pypdf2>=3.0
 
 # --- PostgreSQL (audit, utilisateurs) ---
 psycopg[binary]>=3.1
+
+# --- Rapports PDF ---
+reportlab>=4.0
