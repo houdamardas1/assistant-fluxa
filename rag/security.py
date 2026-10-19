@@ -44,7 +44,8 @@ _CIBLES_REGLES = (r"(?:instructions?|consignes?|directives?|prompts?|restriction
                   r"|garde-?fous?|guardrails?|rules|polic(?:y|ies)|politique de securite"
                   r"|regles de securite|security (?:rules|polic\w*)|filtres?)")
 _VERBES_REVELER = (r"(?:affich\w*|montr\w*|revel\w*|donn\w*|dis|dites|repet\w*|ecri\w*"
-                   r"|imprim\w*|copie\w*|print|show|reveal|display|repeat|leak|output"
+                   r"|imprim\w*|copie\w*|recopi\w*|reproduis\w*|transcri\w*|restitue\w*|recit\w*"
+                   r"|print|show|reveal|display|repeat|leak|output"
                    r"|give|tell|dump)")
 _CIBLES_PROMPT = (r"(?:prompts? systeme|system prompts?"
                   r"|(?:ton|tes|votre|vos|your|its)\s+(?:prompt|instructions?|consignes?"
@@ -84,6 +85,15 @@ _REGLES = [
     ("INJECTION", "balises_systeme", re.compile(
         r"(?:<\s*/?\s*(?:system|assistant|instructions?)\s*>|\[/?(?:system|inst)\]"
         r"|#{2,}\s*(?:system|instructions?)\b)")),
+    ("INJECTION", "ignorer_regles_precedentes", re.compile(
+        r"\b" + _VERBES_IGNORER + r"\b.{0,40}\b(?:regles|rules|instructions?|consignes?|directives?)\s+(?:precedentes?|anterieures?"
+        r"|prealables?|ci-dessus|previous|prior|above|earlier)\b")),
+    ("INJECTION", "consigne_a_l_assistant", re.compile(
+        r"\b(?:note|message|instructions?|important|attention|ordre)s?\s*(?:pour|a|to|for)\s+"
+        r"(?:l'|the\s+)?(?:assistant|ia|ai|modele|model|llm)\b(?!\s+(?:de|du)\b)")),
+    ("INJECTION", "ordre_sur_la_reponse", re.compile(
+        r"\b(?:termin\w+|fini\w*|conclu\w*|ajout\w*|append|end|finish)\b.{0,15}"
+        r"\b(?:ta|votre|your|the)\s+(?:reponse|response|answer)\b.{0,25}\b(?:par|avec|with|by)\b")),
     ("INJECTION", "ar_ignorer_instructions", re.compile(
         _AR_VERBES_IGNORER + r".{0,30}" + _AR_CIBLES_REGLES)),
     ("INJECTION", "darija_ignorer_regles", re.compile(
@@ -120,3 +130,80 @@ def detecter(question: str) -> Verdict:
         if motif.search(t):
             return Verdict(True, categorie, nom)
     return Verdict(False)
+
+
+# --- Injection indirecte : controle des extraits et de la sortie ---
+
+# Regles trop courantes dans de vrais documents (politiques, contrats) :
+# valables pour une question, pas pour un extrait.
+_REGLES_AMBIGUES_DOC = {
+    "ignorer_instructions", "sans_restriction", "elevation_de_privileges",
+    "tous_documents_confidentiels", "export_massif", "secrets_systeme",
+}
+
+
+def detecter_extrait(texte: str) -> Verdict:
+    """Verdict pour un EXTRAIT de document (plus strict sur ce qu'il bloque)."""
+    t = _norm(texte or "")
+    for categorie, nom, motif in _REGLES:
+        if nom in _REGLES_AMBIGUES_DOC:
+            continue
+        if motif.search(t):
+            return Verdict(True, categorie, nom)
+    return Verdict(False)
+
+
+def filtrer_extraits(resultats):
+    """Separe les extraits recuperes en (gardes, bloques).
+    bloques = liste de (extrait, Verdict) pour ceux qui contiennent une
+    consigne adressee a l'assistant. L'ordre des gardes est conserve."""
+    gardes, bloques = [], []
+    for r in resultats:
+        v = detecter_extrait(r.get("content", "") or "")
+        if v.bloque:
+            bloques.append((r, v))
+        else:
+            gardes.append(r)
+    return gardes, bloques
+
+
+_MARQUEURS_PROMPT = ("REGLES OBLIGATOIRES", "FORMAT OBLIGATOIRE", "EXTRAITS DE DOCUMENTS (")
+
+
+def sortie_fuite_prompt(texte):
+    """True si la reponse reprend des morceaux du prompt systeme."""
+    return any(m in (texte or "") for m in _MARQUEURS_PROMPT)
+
+
+# --- Collecte des blocages d'extraits (pour l'audit DOCUMENT_BLOCKED) ---
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+MESSAGE_SORTIE_INVALIDE = (
+    "La r\u00e9ponse g\u00e9n\u00e9r\u00e9e a \u00e9t\u00e9 \u00e9cart\u00e9e par un contr\u00f4le "
+    "de s\u00e9curit\u00e9. Reformulez votre question sur le contenu des documents."
+)
+
+_BLOCAGES = ContextVar("blocages_documents", default=None)
+
+
+@contextmanager
+def mesurer_blocages():
+    """Collecte, pour la requete en cours, les extraits retires par le filtre."""
+    liste = []
+    jeton = _BLOCAGES.set(liste)
+    try:
+        yield liste
+    finally:
+        _BLOCAGES.reset(jeton)
+
+
+def signaler_blocage(extrait, verdict):
+    liste = _BLOCAGES.get()
+    if liste is not None:
+        liste.append({
+            "fichier": extrait.get("fichier_source"),
+            "page": extrait.get("page"),
+            "categorie": verdict.categorie,
+            "regle": verdict.regle,
+        })

@@ -152,6 +152,21 @@ def _pipeline_rag(
                 max_score=max_score,
             )
 
+    # Injection indirecte : un extrait contenant une consigne adressee a
+    # l'assistant est retire AVANT verification et generation.
+    from .security import filtrer_extraits, signaler_blocage, sortie_fuite_prompt, MESSAGE_SORTIE_INVALIDE
+    candidats, _docs_bloques = filtrer_extraits(candidats)
+    for _r, _v in _docs_bloques:
+        signaler_blocage(_r, _v)
+        _dbg("DOCUMENT_BLOCKED : %s p.%s (%s:%s)" % (
+            _r.get("fichier_source"), _r.get("page"), _v.categorie, _v.regle))
+    if _docs_bloques and not candidats:
+        return _resultat(
+            MESSAGE_ABSENTE, "ABSENT", "ABSENTE",
+            all_results=results, candidats_finaux=candidats,
+            max_score=max_score,
+        )
+
     can_answer, confidence, verify_error, extraits = verify_relevance(query, candidats)
 
     # Sortie incoherente du verificateur (can_answer sans extrait designe) :
@@ -181,6 +196,9 @@ def _pipeline_rag(
             rag_results = candidats[:TOP_K_CONTEXT]
 
         answer = generate_answer(query, rag_results, user_role, ctx_dept)
+        if sortie_fuite_prompt(answer):
+            _dbg("Sortie invalidee : fuite du prompt systeme")
+            answer = MESSAGE_SORTIE_INVALIDE
         cited_sources = extract_cited_sources(answer, rag_results)
         fondement = verifier_fondement(answer, rag_results)
         _dbg("Fondement : score=%s unites=%d non_citees=%d nombres_non_soutenus=%d lexical=%d" % (
