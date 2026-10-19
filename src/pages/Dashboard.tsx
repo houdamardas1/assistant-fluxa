@@ -36,6 +36,7 @@ export default function Dashboard() {
   const refused = history.data?.filter((h) => h.event_type === 'ACCESS_DENIED').length ?? 0
   const requests14 = series.data?.days.reduce((a, d) => a + d.requests, 0) ?? 0
   const sum = summary.data
+  const usage = sum?.usage
 
   return (
     <div className="h-full overflow-y-auto px-4 py-8 sm:px-8">
@@ -79,6 +80,19 @@ export default function Dashboard() {
               <KpiCard label="Sans réponse" value={sum ? sum.counts.NO_ANSWER ?? 0 : null} icon="alert" delay={0.05} hint="information absente" />
               <KpiCard label="Latence moyenne" value={sum?.latency.avg_ms ?? null} suffix="ms" icon="clock" delay={0.1} hint={sum ? `sur ${sum.latency.n} requêtes` : undefined} />
               <KpiCard label="Latence p95" value={sum?.latency.p95_ms ?? null} suffix="ms" icon="clock" delay={0.15} hint="95 % des requêtes plus rapides" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <KpiCard label={'Tokens consomm\u00e9s'} value={usage ? usage.tokens_total : null} icon="activity" delay={0.2}
+                hint={usage ? `${usage.requests_llm} requ\u00eates avec le mod\u00e8le` : undefined} />
+              <KpiCard label={'Moyenne par requ\u00eate'} value={usage?.avg_tokens ?? null} suffix="tokens" icon="database" delay={0.25}
+                hint={'requ\u00eates ayant appel\u00e9 le mod\u00e8le'} />
+              <Section title={'Co\u00fbt estim\u00e9'} subtitle={'Selon les prix configur\u00e9s (USD par million de tokens)'} delay={0.3}>
+                <div className="text-2xl font-semibold">{usage?.cost_usd != null ? `${usage.cost_usd.toFixed(4)} $` : '\u2014'}</div>
+                {usage && usage.cost_usd == null && (
+                  <p className="mt-1 text-xs text-muted">{'Prix du mod\u00e8le non configur\u00e9s.'}</p>
+                )}
+              </Section>
             </div>
 
             <Section title="Activité des 14 derniers jours" subtitle="Requêtes traitées par jour (UTC)" delay={0.1}>

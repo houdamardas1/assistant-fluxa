@@ -80,11 +80,22 @@ export interface LatencyStats {
   p95_ms: number | null
 }
 
+export interface UsageStats {
+  requests_llm: number
+  tokens_in: number
+  tokens_out: number
+  tokens_total: number
+  avg_tokens: number | null
+  cost_usd: number | null
+  by_model: Record<string, number>
+}
+
 export interface AuditSummary {
   tenant_id: string
   counts: Record<string, number>
   latency: LatencyStats
   by_role: Record<string, number>
+  usage?: UsageStats
 }
 
 export interface DayPoint {
