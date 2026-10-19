@@ -193,7 +193,9 @@ export function AssistantMessage({
             {!special && <Badge tone={meta.tone}>{meta.label}</Badge>}
             {result.departement && <Badge tone="neutral">{roleLabel(result.departement)}</Badge>}
             {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT') && (
-              verified ? <VerifiedBadge /> : <ConfidenceRing value={result.fondement ?? result.confidence} grounded={result.fondement != null} />
+              verified ? <VerifiedBadge /> : (result.fondement != null || result.confidence > 0)
+                ? <ConfidenceRing value={result.fondement ?? result.confidence} grounded={result.fondement != null} />
+                : null
             )}
             {latencyMs !== null && (
               <span className="inline-flex items-center gap-1 text-xs text-muted"><Icon name="clock" size={13} />{formatMs(latencyMs)}</span>
