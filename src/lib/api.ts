@@ -92,6 +92,38 @@ async function request<T>(path: string, opts: Options = {}): Promise<T> {
   }
 }
 
+async function download(path: string, filename: string, timeoutMs = 30000): Promise<{ blob: Blob; filename: string }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  const hadToken = token !== null
+  const headers: Record<string, string> = {}
+  if (hadToken) headers.Authorization = `Bearer ${token}`
+
+  try {
+    const res = await fetch(BASE + path, { headers, signal: controller.signal })
+    if (!res.ok) {
+      let detail = ''
+      try {
+        const data = await res.json()
+        if (typeof data?.detail === 'string') detail = data.detail
+      } catch {
+        /* corps non JSON */
+      }
+      const retry = Number(res.headers.get('Retry-After')) || undefined
+      if (res.status === 401 && hadToken) onUnauthorized?.()
+      throw new ApiError(res.status, messageFor(res.status, detail, hadToken), retry)
+    }
+    return { blob: await res.blob(), filename }
+  } catch (e) {
+    if (e instanceof ApiError) throw e
+    if (controller.signal.aborted)
+      throw new ApiError(0, 'Délai dépassé : le serveur met trop de temps à répondre.')
+    throw new ApiError(0, `API injoignable (${BASE}). Le serveur est-il démarré ?`)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export const api = {
   health: () => request<Health>('/health', { auth: false, timeoutMs: 5000 }),
   login: (username: string, password: string) =>
@@ -106,4 +138,5 @@ export const api = {
   auditTimeseries: (days = 14) => request<AuditTimeseries>(`/admin/audit/timeseries?days=${days}`),
   auditRecent: (limit = 100) => request<AuditEvent[]>(`/admin/audit/recent?limit=${limit}`),
   kpi: () => request<KpiItem[]>('/kpi'),
+  kpiReport: () => download('/kpi/report.pdf', `fluxa-indicateurs-${new Date().toISOString().slice(0, 10)}.pdf`),
 }

@@ -11,8 +11,8 @@ import { ErrorBox, Skeleton } from '../components/ui/Skeleton'
 
 const PERIMETRES: Record<KpiPerimetre, { label: string; tone: Tone }> = {
   social: { label: 'Comptes sociaux', tone: 'neutral' },
-  consolide: { label: 'Consolid\u00e9', tone: 'info' },
-  non_precise: { label: 'P\u00e9rim\u00e8tre non pr\u00e9cis\u00e9', tone: 'warn' },
+  consolide: { label: 'Consolidé', tone: 'info' },
+  non_precise: { label: 'Périmètre non précisé', tone: 'warn' },
 }
 
 function formatValue(v: number): string {
@@ -21,7 +21,7 @@ function formatValue(v: number): string {
 
 function formatVariation(v: number): string {
   const s = Math.abs(v).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-  return (v > 0 ? '+' : v < 0 ? '\u2212' : '') + s + ' %'
+  return (v > 0 ? '+' : v < 0 ? '−' : '') + s + ' %'
 }
 
 function FilterRow({
@@ -56,7 +56,7 @@ function Tile({ k, index }: { k: KpiItem; index: number }) {
           <h4 className="text-sm text-muted">{k.libelle}</h4>
           <p className="text-xs text-muted">Exercice {k.annee}</p>
         </div>
-        {k.verifie && <Badge tone="ok">Donn\u00e9e v\u00e9rifi\u00e9e</Badge>}
+        {k.verifie && <Badge tone="ok">Donnée vérifiée</Badge>}
       </div>
 
       <div className="mt-3 text-3xl font-semibold tabular-nums tracking-tight">
@@ -68,7 +68,7 @@ function Tile({ k, index }: { k: KpiItem; index: number }) {
         <Badge tone={per.tone}>{per.label}</Badge>
         {v !== null && k.annee_precedente !== null && (
           <Badge tone={v >= 0 ? 'ok' : 'danger'}>
-            <span aria-hidden="true">{v >= 0 ? '\u25b2' : '\u25bc'}</span>
+            <span aria-hidden="true">{v >= 0 ? '▲' : '▼'}</span>
             {formatVariation(v)} vs {k.annee_precedente}
           </Badge>
         )}
@@ -78,7 +78,7 @@ function Tile({ k, index }: { k: KpiItem; index: number }) {
 
       <p className="mt-auto pt-4 text-xs text-muted" title={k.document}>
         <Icon name="file" size={13} className="mr-1 inline align-[-2px]" />
-        {fileLabel(k.document)} \u00b7 page {k.page}
+        {fileLabel(k.document)} · page {k.page}
       </p>
     </motion.article>
   )
@@ -88,6 +88,29 @@ export default function Indicateurs() {
   const { data, error, loading, reload } = useAsync(() => api.kpi(), [])
   const [entreprise, setEntreprise] = useState('all')
   const [indicateur, setIndicateur] = useState('all')
+
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  const exportPdf = async () => {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const { blob, filename } = await api.kpiReport()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : 'Export impossible.')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const items = useMemo(() => data ?? [], [data])
   const entreprises = useMemo(() => Array.from(new Set(items.map((k) => k.entreprise))), [items])
@@ -104,11 +127,23 @@ export default function Indicateurs() {
   return (
     <div className="h-full overflow-y-auto px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-2xl font-semibold tracking-tight">Indicateurs v\u00e9rifi\u00e9s</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">Indicateurs vérifiés</h2>
+          {data && data.length > 0 && (
+            <button
+              type="button" onClick={exportPdf} disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-4 py-1.5 text-sm text-muted transition hover:text-ink disabled:opacity-50"
+            >
+              <Icon name="file" size={15} />
+              {exporting ? 'Génération…' : 'Exporter en PDF'}
+            </button>
+          )}
+        </div>
+        {exportError && <div className="mt-3"><ErrorBox message={exportError} onRetry={exportPdf} /></div>}
         <p className="mt-1 text-sm text-muted">
           {data
-            ? `${data.length} indicateur(s) \u00b7 valeurs relev\u00e9es dans les documents, dans la limite de votre profil.`
-            : 'Chargement des indicateurs\u2026'}
+            ? `${data.length} indicateur(s) · valeurs relevées dans les documents, dans la limite de votre profil.`
+            : 'Chargement des indicateurs…'}
         </p>
 
         {entreprises.length > 1 && (
@@ -140,15 +175,15 @@ export default function Indicateurs() {
         {data && groupes.length === 0 && (
           <p className="mt-10 text-center text-sm text-muted">
             {data.length === 0
-              ? 'Aucun indicateur n\u2019est accessible avec votre profil.'
-              : 'Aucun indicateur ne correspond \u00e0 ces filtres.'}
+              ? 'Aucun indicateur n’est accessible avec votre profil.'
+              : 'Aucun indicateur ne correspond à ces filtres.'}
           </p>
         )}
 
         {data && data.length > 0 && (
           <p className="mt-10 text-xs text-muted">
-            Chaque valeur est reprise du document et de la page indiqu\u00e9s, et contr\u00f4l\u00e9e dans le texte de cette page.
-            La variation n\u2019est calcul\u00e9e qu\u2019entre deux exercices de m\u00eame p\u00e9rim\u00e8tre pr\u00e9cis\u00e9.
+            Chaque valeur est reprise du document et de la page indiqués, et contrôlée dans le texte de cette page.
+            La variation n’est calculée qu’entre deux exercices de même périmètre précisé.
           </p>
         )}
       </div>
