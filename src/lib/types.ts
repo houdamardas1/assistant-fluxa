@@ -36,6 +36,7 @@ export interface AskResponse {
   mode: Mode
   departement: string | null
   confidence: number
+  fondement?: number | null
   sources: Source[]
 }
 

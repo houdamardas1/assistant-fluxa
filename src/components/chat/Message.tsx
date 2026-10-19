@@ -54,12 +54,14 @@ function AnswerText({ text, caret, onCite }: { text: string; caret: boolean; onC
 
 // ------------------------------------------------------------ sous-elements
 
-function ConfidenceRing({ value }: { value: number }) {
+function ConfidenceRing({ value, grounded }: { value: number; grounded: boolean }) {
   const r = 11
   const c = 2 * Math.PI * r
   const pct = Math.round(Math.min(Math.max(value, 0), 1) * 100)
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted" title="Confiance du vérificateur">
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted" title={grounded
+        ? "Score de fondement : part des affirmations citées dont les chiffres figurent dans les extraits cités (calculé, non estimé par le modèle)"
+        : "Confiance du vérificateur (estimée par le modèle)"}>
       <svg width="28" height="28" viewBox="0 0 28 28" className="-rotate-90">
         <circle cx="14" cy="14" r={r} fill="none" strokeWidth="3" style={{ stroke: 'rgb(var(--line))' }} />
         <motion.circle
@@ -69,7 +71,7 @@ function ConfidenceRing({ value }: { value: number }) {
           transition={{ duration: 0.9, ease: 'easeOut' }}
         />
       </svg>
-      <span className="tabular-nums">{pct} %</span>
+      <span className="tabular-nums">{grounded ? 'Fondement ' : ''}{pct} %</span>
     </span>
   )
 }
@@ -191,7 +193,7 @@ export function AssistantMessage({
             {!special && <Badge tone={meta.tone}>{meta.label}</Badge>}
             {result.departement && <Badge tone="neutral">{roleLabel(result.departement)}</Badge>}
             {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT') && (
-              verified ? <VerifiedBadge /> : <ConfidenceRing value={result.confidence} />
+              verified ? <VerifiedBadge /> : <ConfidenceRing value={result.fondement ?? result.confidence} grounded={result.fondement != null} />
             )}
             {latencyMs !== null && (
               <span className="inline-flex items-center gap-1 text-xs text-muted"><Icon name="clock" size={13} />{formatMs(latencyMs)}</span>
