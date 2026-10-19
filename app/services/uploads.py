@@ -18,6 +18,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.services import vision
 from rag.generation import generate_answer
 from rag.postcheck import verifier_fondement
 from rag.security import MESSAGE_SORTIE_INVALIDE, detecter_extrait, sortie_fuite_prompt
@@ -34,9 +35,11 @@ TAILLE_EXTRAIT = 1200
 CHEVAUCHEMENT = 150
 TOP_K = 6
 TAILLE_PAGE_VIRTUELLE = 3000
-EXTENSIONS = (".pdf", ".docx", ".txt", ".md", ".csv")
+IMAGES = (".png", ".jpg", ".jpeg", ".webp")
+EXTENSIONS = (".pdf", ".docx", ".txt", ".md", ".csv") + IMAGES
 DUREE_VIE_S = 30 * 60
 MAX_PAR_UTILISATEUR = 3
+MAX_PAGES_VISION = 6
 
 
 class FichierRefuse(ValueError):
@@ -54,6 +57,7 @@ class Fichier:
     chunks: List[Dict[str, Any]]
     bloques: List[Dict[str, Any]] = field(default_factory=list)
     avertissements: List[str] = field(default_factory=list)
+    pages_image: set = field(default_factory=set)
     tenant_id: str = ""
     user_id: str = ""
     cree: float = field(default_factory=time.time)
@@ -79,7 +83,7 @@ def _paginer(texte: str) -> List[Tuple[int, str]]:
     return pages
 
 
-def _lire_pdf(data: bytes) -> Tuple[List[Tuple[int, str]], List[str]]:
+def _lire_pdf(data: bytes):
     if not data.startswith(b"%PDF-"):
         raise FichierRefuse("Ce fichier n'est pas un vrai PDF.")
     try:
@@ -90,21 +94,55 @@ def _lire_pdf(data: bytes) -> Tuple[List[Tuple[int, str]], List[str]]:
         raise FichierRefuse("PDF protégé par mot de passe : retirez la protection puis réessayez.")
     if doc.page_count > MAX_PAGES:
         raise FichierRefuse("PDF trop long (%d pages, maximum %d)." % (doc.page_count, MAX_PAGES))
-    pages, sans_texte = [], 0
+    pages, vides = [], []
     for i in range(doc.page_count):
         t = doc[i].get_text("text") or ""
         if len(t.strip()) < 20:
-            sans_texte += 1
+            vides.append(i)
         else:
             pages.append((i + 1, t))
-    if not pages:
-        raise FichierRefuse(
-            "Ce PDF ne contient pas de texte lisible (document scanné ou images). "
-            "La lecture des images arrive avec la prochaine étape.")
-    avert = []
-    if sans_texte:
-        avert.append("%d page(s) sans texte (images ou scan) n'ont pas pu être lues." % sans_texte)
-    return pages, avert
+    avert, pimg = [], set()
+    if vides:  # pages scannees : lecture par le modele de vision (nombre limite)
+        erreur = ""
+        for i in vides[:MAX_PAGES_VISION]:
+            try:
+                jpeg = vision.preparer(doc[i].get_pixmap(dpi=150).tobytes("png"))
+                texte = vision.transcrire(jpeg)
+            except vision.ErreurVision as e:
+                erreur = str(e)
+                break
+            if len(texte.strip()) >= 5:
+                pages.append((i + 1, texte))
+                pimg.add(i + 1)
+        pages.sort()
+        if pimg:
+            avert.append("%d page(s) scannée(s) lue(s) par un modèle de vision : "
+                         "vérifiez les chiffres importants sur l'original." % len(pimg))
+        reste = len(vides) - len(pimg)
+        if reste and pimg:
+            avert.append("%d page(s) sans texte n'ont pas été lues (maximum %d pages scannées par fichier)."
+                         % (reste, MAX_PAGES_VISION))
+        if erreur and pimg:
+            avert.append(erreur)
+        if not pages:
+            raise FichierRefuse(erreur or "Aucun texte lisible n'a été trouvé dans ce PDF.")
+    return pages, avert, pimg
+
+
+def _lire_image(data: bytes):
+    ok = (data.startswith(b"\x89PNG\r\n\x1a\n") or data.startswith(b"\xff\xd8\xff")
+          or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"))
+    if not ok:
+        raise FichierRefuse("Ce fichier n'est pas une vraie image (PNG, JPG ou WebP).")
+    try:
+        texte = vision.transcrire(vision.preparer(data))
+    except vision.ErreurVision as e:
+        raise FichierRefuse(str(e))
+    if len(texte.strip()) < 5:
+        raise FichierRefuse("Aucun texte lisible n'a été trouvé dans cette image.")
+    pages = _paginer(texte)
+    return pages, ["Texte lu dans l'image par un modèle de vision : "
+                   "vérifiez les chiffres importants sur l'original."], {p for p, _ in pages}
 
 
 def _lire_docx(data: bytes) -> Tuple[List[Tuple[int, str]], List[str]]:
@@ -224,15 +262,18 @@ def charger(nom: str, data: bytes) -> Fichier:
     ext = os.path.splitext(nom)[1].lower()
     if ext not in EXTENSIONS:
         raise FichierRefuse(
-            "Format non pris en charge (%s). Formats acceptés : PDF, Word (.docx), TXT, MD, CSV."
+            "Format non pris en charge (%s). Formats acceptés : PDF, Word (.docx), TXT, MD, CSV, images (PNG, JPG, WebP)."
             % (ext or "sans extension"))
     if not data:
         raise FichierRefuse("Fichier vide.")
     if len(data) > MAX_OCTETS:
         raise FichierRefuse("Fichier trop volumineux (maximum %d Mo)." % (MAX_OCTETS // (1024 * 1024)))
 
+    pimg: set = set()
     if ext == ".pdf":
-        pages, avert = _lire_pdf(data)
+        pages, avert, pimg = _lire_pdf(data)
+    elif ext in IMAGES:
+        pages, avert, pimg = _lire_image(data)
     elif ext == ".docx":
         pages, avert = _lire_docx(data)
     else:
@@ -263,7 +304,7 @@ def charger(nom: str, data: bytes) -> Fichier:
     return Fichier(
         id=uuid.uuid4().hex, nom=nom, ext=ext, taille=len(data),
         sha=hashlib.sha256(data).hexdigest(), pages=len(pages), chunks=chunks,
-        bloques=bloques, avertissements=avert)
+        bloques=bloques, avertissements=avert, pages_image=pimg)
 
 
 # --------------------------------------------------------------- selection
@@ -332,5 +373,7 @@ def repondre(f: Fichier, question: str, role: str) -> Dict[str, Any]:
     cites = cites or list(range(1, len(rag) + 1))
     sources = [{"n": i, "fichier": f.nom, "page": rag[i - 1]["page"], "entreprise": "Fichier téléversé",
                 "type": "fichier_utilisateur", "demo": False, "verifie": False} for i in cites]
-    return {"answer": rep, "fondement": _score(verifier_fondement(rep, rag)),
-            "sources": sources, "trouve": True}
+    fond = _score(verifier_fondement(rep, rag))
+    if f.pages_image and any(c["page"] in f.pages_image for c in sel):
+        fond = None  # texte lu par un modele de vision : le score ne prouverait rien
+    return {"answer": rep, "fondement": fond, "sources": sources, "trouve": True}
