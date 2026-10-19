@@ -9,12 +9,13 @@ import { AssistantMessage, ErrorMessage, TypingMessage, UserMessage } from '../c
 import { HistoryPanel } from '../components/chat/HistoryPanel'
 import { Icon, LogoMark } from '../components/ui/Icons'
 import { Skeleton } from '../components/ui/Skeleton'
+import { FileAttachButton, FileChip } from '../components/chat/FileAttach'
 
 const MAX_LEN = 1000
 
 export default function Chat() {
   const { user } = useAuth()
-  const { messages, pending, send, reset } = useChat()
+  const { messages, pending, send, reset, attachment, uploading, uploadError, attach, detach } = useChat()
   const stats = useAsync(() => api.corpusStats(), [])
   const [text, setText] = useState('')
   const areaRef = useRef<HTMLTextAreaElement>(null)
@@ -103,11 +104,13 @@ export default function Chat() {
 
         <div className="border-t border-line bg-bg/70 px-4 py-4 backdrop-blur sm:px-8">
           <div className="mx-auto max-w-3xl">
+            <FileChip attachment={attachment} uploading={uploading} error={uploadError} onRemove={detach} />
             <div className="flex items-end gap-2 rounded-2xl border border-line bg-surface p-2 shadow-soft transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15">
+              <FileAttachButton onPick={(f) => void attach(f)} disabled={uploading || !!pending} />
               <textarea
                 ref={areaRef} rows={1} value={text} maxLength={MAX_LEN} aria-label="Votre question"
                 onChange={(e) => setText(e.target.value)} onKeyDown={onKeyDown}
-                placeholder="Posez votre question…"
+                placeholder={attachment ? `Posez une question sur « ${attachment.nom} »…` : 'Posez votre question…'}
                 className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] placeholder:text-muted/70"
               />
               <motion.button
