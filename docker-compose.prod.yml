@@ -1,0 +1,34 @@
+﻿# Surcouche PRODUCTION :
+#   docker compose -p fluxa-prod -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Prerequis : un .env conforme (env/prod.env.example) valide par
+#   python scripts/verifier_env.py .env
+# Les identifiants et secrets viennent du .env de la machine cible (jamais de Git).
+services:
+  api:
+    restart: always
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY obligatoire}
+      GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY obligatoire}
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2.0"
+  web:
+    restart: always
+    build:
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:?PUBLIC_API_URL obligatoire}
+  postgres:
+    restart: always
+    ports: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatoire}
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+  pgadmin:
+    profiles: ["tools"]

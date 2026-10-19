@@ -1,0 +1,28 @@
+﻿# Surcouche STAGING (pre-production) :
+#   docker compose -p fluxa-staging -f docker-compose.yml -f docker-compose.staging.yml up -d --build
+# Prerequis : un .env conforme (env/staging.env.example) valide par
+#   python scripts/verifier_env.py .env
+services:
+  api:
+    restart: always
+    environment:
+      ENVIRONMENT: staging
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY obligatoire}
+      GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY obligatoire}
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+  web:
+    restart: always
+    build:
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:?PUBLIC_API_URL obligatoire}
+  postgres:
+    restart: always
+    ports: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatoire}
+  pgadmin:
+    profiles: ["tools"]
