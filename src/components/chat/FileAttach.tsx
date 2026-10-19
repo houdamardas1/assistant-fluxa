@@ -1,7 +1,7 @@
 import { useRef, type ChangeEvent } from 'react'
 import type { FileInfo } from '../../lib/types'
 
-export const ACCEPT = '.pdf,.docx,.txt,.md,.csv'
+export const ACCEPT = '.pdf,.docx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp'
 
 function Clip({ size = 20 }: { size?: number }) {
   return (
@@ -39,7 +39,7 @@ export function FileAttachButton({ onPick, disabled }: { onPick: (f: File) => vo
       <input ref={ref} type="file" accept={ACCEPT} className="hidden" onChange={change} />
       <button
         type="button" disabled={disabled} onClick={() => ref.current?.click()}
-        aria-label="Joindre un fichier" title="Joindre un fichier (PDF, Word, TXT, CSV)"
+        aria-label="Joindre un fichier" title="Joindre un fichier (PDF, Word, TXT, CSV, image)"
         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-line/60 hover:text-ink disabled:opacity-40"
       >
         <Clip />
@@ -70,13 +70,14 @@ export function FileChip({ attachment, uploading, error, onRemove }: {
     )
   }
   if (!attachment) return null
-  const unite = attachment.type === 'pdf' ? 'page(s)' : 'section(s)'
+  const estImage = ['png', 'jpg', 'jpeg', 'webp'].includes(attachment.type)
+  const detail = estImage ? 'image' : `${attachment.pages} ${attachment.type === 'pdf' ? 'page(s)' : 'section(s)'}`
   return (
     <div className="mb-2 rounded-xl border border-brand/30 bg-brand/5 px-3 py-2 text-sm">
       <div className="flex items-center gap-2">
         <span className="text-brand"><Clip size={16} /></span>
         <span className="min-w-0 flex-1 truncate font-medium">{attachment.nom}</span>
-        <span className="shrink-0 text-xs text-muted">{taille(attachment.taille)} · {attachment.pages} {unite}</span>
+        <span className="shrink-0 text-xs text-muted">{taille(attachment.taille)} · {detail}</span>
         <button
           type="button" onClick={onRemove} aria-label="Retirer le fichier"
           className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted hover:bg-line/60 hover:text-ink"
