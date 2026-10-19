@@ -227,3 +227,77 @@ def test_fondement_masque_pour_une_image(monkeypatch):
     f = uploads.charger("photo.png", png())
     r = uploads.repondre(f, "Quel est le budget de formation ?", "tous")
     assert r["trouve"] is True and r["fondement"] is None
+
+
+import numpy as np
+from openpyxl import Workbook
+from pptx import Presentation
+
+
+def xlsx():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Ventes"
+    ws.append(["region", "ventes"])
+    ws.append(["Rabat", 80000])
+    ws.append(["Tanger", 95000])
+    b = io.BytesIO()
+    wb.save(b)
+    return b.getvalue()
+
+
+def pptx():
+    prs = Presentation()
+    s = prs.slides.add_slide(prs.slide_layouts[1])
+    s.shapes.title.text = "Budget formation"
+    s.placeholders[1].text = "250 000 MAD en 2026"
+    b = io.BytesIO()
+    prs.save(b)
+    return b.getvalue()
+
+
+def test_nouveaux_formats():
+    f = uploads.charger("v.xlsx", xlsx())
+    assert any("Rabat | 80000" in c["content"] for c in f.chunks)
+    assert any("ne fait pas de calculs" in a for a in f.avertissements)
+    f = uploads.charger("p.pptx", pptx())
+    assert f.pages == 1 and any("250 000" in c["content"] for c in f.chunks)
+    f = uploads.charger("d.json", b'{"budget":{"formation":250000}}')
+    assert any("250000" in c["content"] for c in f.chunks)
+    html = "<html><script>x=1</script><body><h1>Titre</h1><p>Budget 250 000 MAD</p></body></html>"
+    f = uploads.charger("p.html", html.encode())
+    texte = " ".join(c["content"] for c in f.chunks)
+    assert "Budget 250 000 MAD" in texte and "x=1" not in texte
+    assert uploads.charger("t.tsv", b"a\tb\n1\t2\n").ext == ".tsv"
+
+
+def test_faux_xlsx_et_pptx_refuses():
+    with pytest.raises(uploads.FichierRefuse):
+        uploads.charger("a.xlsx", b"pas un zip")
+    with pytest.raises(uploads.FichierRefuse):
+        uploads.charger("a.pptx", docx(TEXTE))
+
+
+class FauxEncodeur:
+    def encode(self, textes, **kw):
+        lignes = []
+        for t in textes:
+            s = uploads._fold(t)
+            lignes.append([1.0 if ("salaire" in s or "remuneration" in s) else 0.0,
+                           1.0 if "budget" in s else 0.0, 0.1])
+        a = np.array(lignes)
+        return a / np.linalg.norm(a, axis=1, keepdims=True)
+
+
+def test_recherche_par_le_sens():
+    p1 = ("La remuneration mensuelle est versee le 28. " * 20).strip()
+    p2 = ("Le budget de formation est reparti par service. " * 20).strip()
+    f = uploads.charger("rh.txt", (p1 + "\n\n" + p2).encode(), FauxEncodeur())
+    assert len(f.chunks) == 2 and f.emb is not None
+    question = "Quel est le salaire ?"  # le mot « salaire » n'apparait nulle part dans le texte
+    assert uploads.selectionner(f.chunks, question) == []
+    qv = FauxEncodeur().encode([question])[0]
+    sel = uploads.selectionner(f.chunks, question, emb=f.emb, qvec=qv)
+    assert sel and "remuneration" in sel[0]["content"]
+    hors = "Quelle est la capitale de la France ?"
+    assert uploads.selectionner(f.chunks, hors, emb=f.emb, qvec=FauxEncodeur().encode([hors])[0]) == []

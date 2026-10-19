@@ -7,6 +7,7 @@ taille, filtre d'injection indirecte sur chaque extrait.
 
 import hashlib
 import io
+import json
 import math
 import os
 import re
@@ -14,11 +15,13 @@ import time
 import unicodedata
 import uuid
 import zipfile
+from html.parser import HTMLParser
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.services import vision
+from rag.config import _dbg
 from rag.generation import generate_answer
 from rag.postcheck import verifier_fondement
 from rag.security import MESSAGE_SORTIE_INVALIDE, detecter_extrait, sortie_fuite_prompt
@@ -36,10 +39,14 @@ CHEVAUCHEMENT = 150
 TOP_K = 6
 TAILLE_PAGE_VIRTUELLE = 3000
 IMAGES = (".png", ".jpg", ".jpeg", ".webp")
-EXTENSIONS = (".pdf", ".docx", ".txt", ".md", ".csv") + IMAGES
+TEXTES = (".txt", ".md", ".log", ".tsv", ".csv", ".json", ".xml", ".html", ".htm")
+EXTENSIONS = (".pdf", ".docx", ".xlsx", ".pptx") + TEXTES + IMAGES
 DUREE_VIE_S = 30 * 60
 MAX_PAR_UTILISATEUR = 3
 MAX_PAGES_VISION = 6
+MAX_CELLULES = 20000
+RRF_K = 60
+SEUIL_SEMANTIQUE = float(os.getenv("FICHIER_SEUIL_SEMANTIQUE", "0.30"))
 
 
 class FichierRefuse(ValueError):
@@ -58,6 +65,7 @@ class Fichier:
     bloques: List[Dict[str, Any]] = field(default_factory=list)
     avertissements: List[str] = field(default_factory=list)
     pages_image: set = field(default_factory=set)
+    emb: Any = None
     tenant_id: str = ""
     user_id: str = ""
     cree: float = field(default_factory=time.time)
@@ -173,6 +181,149 @@ def _lire_docx(data: bytes) -> Tuple[List[Tuple[int, str]], List[str]]:
     return _paginer(texte), []
 
 
+def _verifier_zip(data: bytes, marqueur: str, nom: str) -> None:
+    if not data.startswith(b"PK"):
+        raise FichierRefuse("Ce fichier n'est pas un vrai document %s." % nom)
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            infos = z.infolist()
+            if len(infos) > 5000 or sum(i.file_size for i in infos) > 200 * 1024 * 1024:
+                raise FichierRefuse("Document %s refusé (contenu décompressé trop volumineux)." % nom)
+            if marqueur not in z.namelist():
+                raise FichierRefuse("Ce fichier n'est pas un vrai document %s." % nom)
+    except FichierRefuse:
+        raise
+    except zipfile.BadZipFile:
+        raise FichierRefuse("Document %s illisible ou corrompu." % nom)
+
+
+def _lire_xlsx(data: bytes):
+    _verifier_zip(data, "xl/workbook.xml", "Excel (.xlsx)")
+    lignes, cellules, tronque, feuilles = [], 0, False, 0
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+        for ws in wb.worksheets:
+            feuilles += 1
+            lignes.append("Feuille : %s" % ws.title)
+            for row in ws.iter_rows(values_only=True):
+                vals = ["" if v is None else str(v) for v in row]
+                while vals and not vals[-1]:
+                    vals.pop()
+                if not vals:
+                    continue
+                cellules += len(vals)
+                if cellules > MAX_CELLULES:
+                    tronque = True
+                    break
+                lignes.append(" | ".join(vals))
+            if tronque:
+                break
+    except FichierRefuse:
+        raise
+    except Exception:
+        raise FichierRefuse("Classeur Excel illisible ou corrompu.")
+    if cellules == 0:
+        raise FichierRefuse("Ce classeur Excel ne contient aucune donnée.")
+    avert = []
+    if tronque:
+        avert.append("Classeur tronqué : seules les %d premières cellules ont été lues." % MAX_CELLULES)
+    return _paginer("\n".join(lignes)), avert
+
+
+def _lire_pptx(data: bytes):
+    _verifier_zip(data, "ppt/presentation.xml", "PowerPoint (.pptx)")
+    pages = []
+    try:
+        from pptx import Presentation
+        prs = Presentation(io.BytesIO(data))
+        if len(prs.slides) > MAX_PAGES:
+            raise FichierRefuse("Présentation trop longue (%d diapositives, maximum %d)." % (len(prs.slides), MAX_PAGES))
+        for i, slide in enumerate(prs.slides, 1):
+            morceaux = []
+            for shape in slide.shapes:
+                if shape.has_text_frame and shape.text_frame.text.strip():
+                    morceaux.append(shape.text_frame.text.strip())
+                if getattr(shape, "has_table", False) and shape.has_table:
+                    for row in shape.table.rows:
+                        morceaux.append(" | ".join(c.text.strip() for c in row.cells))
+            if slide.has_notes_slide and slide.notes_slide.notes_text_frame is not None:
+                note = slide.notes_slide.notes_text_frame.text.strip()
+                if note:
+                    morceaux.append("Notes : " + note)
+            if morceaux:
+                pages.append((i, "\n\n".join(morceaux)))
+    except FichierRefuse:
+        raise
+    except Exception:
+        raise FichierRefuse("Présentation PowerPoint illisible ou corrompue.")
+    if not pages:
+        raise FichierRefuse("Cette présentation ne contient pas de texte (images seulement).")
+    return pages, []
+
+
+def _lire_json(data: bytes):
+    pages, avert = _lire_texte(data)
+    texte = "".join(t for _, t in pages)
+    try:
+        texte = json.dumps(json.loads(texte), ensure_ascii=False, indent=1)
+    except ValueError:
+        return pages, avert
+    return _paginer(texte), avert
+
+
+_BLOCS = {"p", "div", "br", "li", "tr", "td", "th", "h1", "h2", "h3", "h4", "h5", "h6",
+          "section", "article", "table", "ul", "ol"}
+
+
+class _ExtracteurTexte(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.morceaux = []
+        self._ignore = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self._ignore += 1
+        elif tag in _BLOCS:
+            self.morceaux.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style"):
+            self._ignore = max(0, self._ignore - 1)
+        elif tag in _BLOCS:
+            self.morceaux.append("\n")
+
+    def handle_data(self, data):
+        if not self._ignore:
+            self.morceaux.append(data)
+
+
+def _lire_html(data: bytes):
+    pages0, _ = _lire_texte(data)
+    p = _ExtracteurTexte()
+    try:
+        p.feed("".join(t for _, t in pages0))
+        p.close()
+    except Exception:
+        raise FichierRefuse("Fichier HTML/XML illisible.")
+    lignes = [re.sub(r"[ \t]+", " ", l).strip() for l in "".join(p.morceaux).splitlines()]
+    texte = "\n".join(l for l in lignes if l)
+    if not texte:
+        raise FichierRefuse("Aucun texte trouvé dans ce fichier.")
+    return _paginer(texte), []
+
+
+def _embeddings(chunks, encodeur):
+    if encodeur is None or len(chunks) < 2:
+        return None
+    try:
+        return encodeur.encode([c["content"] for c in chunks], batch_size=32,
+                               normalize_embeddings=True, show_progress_bar=False)
+    except Exception:
+        return None
+
+
 def _lire_texte(data: bytes) -> Tuple[List[Tuple[int, str]], List[str]]:
     if b"\x00" in data[:4096]:
         raise FichierRefuse("Ce fichier n'est pas un fichier texte.")
@@ -257,12 +408,12 @@ def _ecarter_lignes(pages):
     return propres, bloques
 
 
-def charger(nom: str, data: bytes) -> Fichier:
+def charger(nom: str, data: bytes, encodeur: Any = None) -> Fichier:
     nom = _nom_propre(nom)
     ext = os.path.splitext(nom)[1].lower()
     if ext not in EXTENSIONS:
         raise FichierRefuse(
-            "Format non pris en charge (%s). Formats acceptés : PDF, Word (.docx), TXT, MD, CSV, images (PNG, JPG, WebP)."
+            "Format non pris en charge (%s). Formats acceptés : PDF, Word, Excel, PowerPoint, texte (TXT, MD, LOG, CSV, TSV, JSON, HTML, XML) et images (PNG, JPG, WebP)."
             % (ext or "sans extension"))
     if not data:
         raise FichierRefuse("Fichier vide.")
@@ -276,13 +427,21 @@ def charger(nom: str, data: bytes) -> Fichier:
         pages, avert, pimg = _lire_image(data)
     elif ext == ".docx":
         pages, avert = _lire_docx(data)
+    elif ext == ".xlsx":
+        pages, avert = _lire_xlsx(data)
+    elif ext == ".pptx":
+        pages, avert = _lire_pptx(data)
+    elif ext == ".json":
+        pages, avert = _lire_json(data)
+    elif ext in (".html", ".htm", ".xml"):
+        pages, avert = _lire_html(data)
     else:
         pages, avert = _lire_texte(data)
     if sum(len(t) for _, t in pages) > MAX_CARACTERES:
         raise FichierRefuse("Contenu trop volumineux pour une analyse fiable.")
 
     entete = ""
-    if ext == ".csv":
+    if ext in (".csv", ".tsv"):
         entete = next((l.strip() for l in pages[0][1].splitlines() if l.strip()), "")[:400]
 
     pages, bloques = _ecarter_lignes(pages)
@@ -298,13 +457,14 @@ def charger(nom: str, data: bytes) -> Fichier:
         raise FichierRefuse("Le contenu de ce fichier a été bloqué par la politique de sécurité.")
     if bloques:
         avert.append("%d passage(s) suspect(s) ont été écartés par la politique de sécurité." % len(bloques))
-    if ext == ".csv":
+    if ext in (".csv", ".tsv", ".xlsx"):
         avert.append("Fichier tabulaire : l'assistant lit et cite les lignes, il ne fait pas de calculs.")
 
+    emb = _embeddings(chunks, encodeur)
     return Fichier(
         id=uuid.uuid4().hex, nom=nom, ext=ext, taille=len(data),
         sha=hashlib.sha256(data).hexdigest(), pages=len(pages), chunks=chunks,
-        bloques=bloques, avertissements=avert, pages_image=pimg)
+        bloques=bloques, avertissements=avert, pages_image=pimg, emb=emb)
 
 
 # --------------------------------------------------------------- selection
@@ -318,7 +478,9 @@ def _fold(s: str) -> str:
                    if unicodedata.category(c) != "Mn")
 
 
-def selectionner(chunks: List[Dict[str, Any]], question: str, k: int = TOP_K) -> List[Dict[str, Any]]:
+def selectionner(chunks: List[Dict[str, Any]], question: str, k: int = TOP_K,
+                 emb: Any = None, qvec: Any = None) -> List[Dict[str, Any]]:
+    """Mots (poids par rarete) + proximite de sens (si embeddings), fusionnes par rang."""
     n = len(chunks)
     if not n:
         return []
@@ -331,7 +493,7 @@ def selectionner(chunks: List[Dict[str, Any]], question: str, k: int = TOP_K) ->
     for c in chunks:
         for t in set(c["tf"]):
             df[t] += 1
-    notes = []
+    lex = {}
     for i, c in enumerate(chunks):
         s = 0.0
         for t in set(q):
@@ -339,9 +501,23 @@ def selectionner(chunks: List[Dict[str, Any]], question: str, k: int = TOP_K) ->
             if f:
                 s += math.log(1 + n / (1 + df[t])) * (1 + math.log(f))
         if s > 0:
-            notes.append((s, i))
-    notes.sort(reverse=True)
-    return [chunks[i] for i in sorted(i for _, i in notes[:k])]
+            lex[i] = s
+    sem = {}
+    if emb is not None and qvec is not None:
+        sims = emb @ qvec
+        sem = {i: float(sims[i]) for i in range(n)}
+    meilleure = max(sem.values()) if sem else -1.0
+    if not lex and meilleure < SEUIL_SEMANTIQUE:
+        _dbg("FICHIER selection : aucun passage (lex=0, sim_max=%.2f, seuil=%.2f)" % (meilleure, SEUIL_SEMANTIQUE))
+        return []
+    scores: Dict[int, float] = {}
+    for r, i in enumerate(sorted(lex, key=lex.get, reverse=True)):
+        scores[i] = scores.get(i, 0.0) + 1.0 / (RRF_K + r)
+    for r, i in enumerate(i for i in sorted(sem, key=sem.get, reverse=True) if sem[i] >= SEUIL_SEMANTIQUE):
+        scores[i] = scores.get(i, 0.0) + 1.0 / (RRF_K + r)
+    top = sorted(scores, key=scores.get, reverse=True)[:k]
+    _dbg("FICHIER selection : lex=%d, sim_max=%.2f, retenus=%d" % (len(lex), meilleure, len(top)))
+    return [chunks[i] for i in sorted(top)]
 
 
 # ----------------------------------------------------------------- reponse
@@ -352,8 +528,14 @@ def _score(fo: Any) -> Optional[float]:
     return float(fo) if isinstance(fo, (int, float)) else None
 
 
-def repondre(f: Fichier, question: str, role: str) -> Dict[str, Any]:
-    sel = selectionner(f.chunks, question)
+def repondre(f: Fichier, question: str, role: str, encodeur: Any = None) -> Dict[str, Any]:
+    qvec = None
+    if f.emb is not None and encodeur is not None:
+        try:
+            qvec = encodeur.encode([question], normalize_embeddings=True, show_progress_bar=False)[0]
+        except Exception:
+            qvec = None
+    sel = selectionner(f.chunks, question, emb=f.emb if qvec is not None else None, qvec=qvec)
     if not sel:
         return {"answer": "Je ne trouve pas cette information dans le fichier « %s »." % f.nom,
                 "fondement": None, "sources": [], "trouve": False}
@@ -372,7 +554,7 @@ def repondre(f: Fichier, question: str, role: str) -> Dict[str, Any]:
     cites = sorted({int(m) for m in re.findall(r"\[(?:Source\s*)?(\d+)", rep) if 0 < int(m) <= len(rag)})
     cites = cites or list(range(1, len(rag) + 1))
     sources = [{"n": i, "fichier": f.nom, "page": rag[i - 1]["page"], "entreprise": "Fichier téléversé",
-                "type": "fichier_utilisateur", "demo": False, "verifie": False} for i in cites]
+                "type": "temporaire", "demo": False, "verifie": False} for i in cites]
     fond = _score(verifier_fondement(rep, rag))
     if f.pages_image and any(c["page"] in f.pages_image for c in sel):
         fond = None  # texte lu par un modele de vision : le score ne prouverait rien

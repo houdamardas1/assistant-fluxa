@@ -1,4 +1,4 @@
-﻿"""Televersement et questions sur un fichier (ephemere, en memoire)."""
+"""Televersement et questions sur un fichier (ephemere, en memoire)."""
 
 import threading
 import time
@@ -115,7 +115,7 @@ async def televerser(request: Request, file: UploadFile = File(...),
     data = await file.read(uploads.MAX_OCTETS + 1)
     nom = file.filename or "fichier"
     try:
-        f = await run_in_threadpool(uploads.charger, nom, data)
+        f = await run_in_threadpool(uploads.charger, nom, data, getattr(getattr(state, "rag", None), "model", None))
     except uploads.FichierRefuse as e:
         state.audit.record("FILE_REJECTED", rid, question="Fichier refusé : " + uploads._nom_propre(nom),
                            mode="FICHIER", detail=str(e)[:200], **qui)
@@ -149,7 +149,7 @@ def poser_question(file_id: str, body: AskFileBody, request: Request,
         return FileAnswer(request_id=rid, answer=MESSAGE_BLOQUE, mode="BLOQUE")
     t0 = time.perf_counter()
     with mesurer_usage() as usage:
-        res = uploads.repondre(f, body.question, principal.role)
+        res = uploads.repondre(f, body.question, principal.role, getattr(getattr(state, "rag", None), "model", None))
     ms = int((time.perf_counter() - t0) * 1000)
     state.audit.record(
         "FILE_ANALYZED", rid, question=body.question, mode="FICHIER", answer=res["answer"],

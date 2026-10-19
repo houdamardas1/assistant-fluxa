@@ -329,13 +329,13 @@ Test d'OCR (EasyOCR, français) sur des pages réelles : la note 5.1.9 est lue a
 
 ## 25. Analyse de fichiers téléversés
 
-**Périmètre.** PDF (80 pages et 5 Mo au maximum), Word (.docx), TXT, MD, CSV et images PNG, JPG, WebP. Les PDF protégés par mot de passe, les faux formats (contrôle des premiers octets) et les archives Word anormalement volumineuses sont refusés. Aucun antivirus n'est exécuté.
+**Périmètre.** PDF (80 pages et 5 Mo au maximum), Word (.docx), Excel (.xlsx), PowerPoint (.pptx), TXT, MD, LOG, CSV, TSV, JSON, HTML, XML et images PNG, JPG, WebP. Les anciens formats Office (.doc, .xls, .ppt) ne sont pas lus. Les PDF protégés par mot de passe, les faux formats (contrôle des premiers octets) et les archives Word anormalement volumineuses sont refusés. Aucun antivirus n'est exécuté.
 
 **Éphémère, en mémoire.** Le fichier vit 30 minutes dans la mémoire du processus de l'API (3 fichiers par utilisateur au maximum). Il n'est jamais écrit sur disque ni en base, et il n'est pas ajouté à l'index. Il disparaît au redémarrage de l'API. Cette mémoire n'est pas partagée entre plusieurs instances : en production avec plusieurs réplicas, il faudrait un stockage de session partagé (par exemple Redis) ou un affinage de session.
 
 **Le contenu du fichier est une donnée non fiable.** Chaque ligne puis chaque extrait passent par le filtre d'injection indirecte (§ 19 à 22) ; les passages suspects sont écartés, signalés à l'utilisateur et audités (DOCUMENT_BLOCKED). Le filtre est lexical : une consigne reformulée ou écrite dans une langue non couverte peut passer. Le prompt de génération (règle 11) et la validation de sortie constituent les deux autres couches.
 
-**Sélection des extraits lexicale.** Les passages utilisés pour répondre sont choisis par recoupement de mots (pondération par rareté), sans embeddings. Une question formulée avec des synonymes absents du fichier peut recevoir « je ne trouve pas cette information » à tort. Un résumé d'un long document s'appuie sur 6 extraits répartis, donc il est partiel.
+**Sélection des extraits hybride.** Les passages utilisés pour répondre sont choisis en combinant un recoupement de mots (pondération par rareté) et la proximité de sens (même modèle d'embeddings que l'index), fusionnés par rang. Le modèle d'embeddings ne lit que le début de chaque extrait (limite de longueur du modèle) et le seuil de pertinence (0,30, réglable avec FICHIER_SEUIL_SEMANTIQUE) n'a pas été calibré sur un large échantillon : une question hors sujet peut parfois atteindre le modèle de génération, qui doit alors répondre que l'information est absente. Un fichier d'un seul extrait n'est pas indexé sémantiquement. Un résumé d'un long document s'appuie sur 6 extraits répartis, donc il est partiel.
 
 **CSV et chiffres.** L'assistant lit et cite les lignes ; il ne calcule pas (somme, moyenne). Le modèle n'a pas à calculer des nombres (principe du projet).
 
