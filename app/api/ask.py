@@ -70,11 +70,11 @@ def ask(
     if verdict.bloque:
         # Filtre d'entree : rien n'est envoye au modele.
         state.audit.record(
-            "PROMPT_BLOCKED", rid, question=body.question, mode="HORS_PERIMETRE",
+            "PROMPT_BLOCKED", rid, question=body.question, mode="BLOQUE",
             detail=f"{verdict.categorie}:{verdict.regle}", answer=MESSAGE_BLOQUE,
             latency_ms=0, **qui,
         )
-        return AskResponse(request_id=rid, answer=MESSAGE_BLOQUE, mode="HORS_PERIMETRE",
+        return AskResponse(request_id=rid, answer=MESSAGE_BLOQUE, mode="BLOQUE",
                            departement=None, confidence=0.0, sources=[])
 
     debut = time.perf_counter()
