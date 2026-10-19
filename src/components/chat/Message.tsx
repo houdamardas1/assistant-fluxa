@@ -142,7 +142,13 @@ export function AssistantMessage({
   const meta = modeMeta(result.mode)
   const verified = result.sources.length > 0 && result.sources.every((s) => s.verifie === true)
   const special = SPECIAL[result.mode]
-  const { shown, done } = useTypewriter(result.answer, animate)
+  // Le titre du mode est deja affiche dans l'en-tete : on retire sa repetition
+  // en tete du texte (la copie conserve la reponse complete).
+  const [premiere, ...suite] = result.answer.split('\n')
+  const texte = premiere.trim() === meta.label && suite.length > 0
+    ? suite.join('\n').replace(/^\s+/, '')
+    : result.answer
+  const { shown, done } = useTypewriter(texte, animate)
   const [highlight, setHighlight] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
 
