@@ -36,6 +36,7 @@ export function modeMeta(mode: Mode | string | null | undefined): { label: strin
     case 'HORS_PERIMETRE': return { label: 'Accès non autorisé', tone: 'danger' }
     case 'BLOQUE': return { label: 'Demande bloqu\u00e9e', tone: 'danger' }
     case 'CLARIFICATION': return { label: 'Précision nécessaire', tone: 'info' }
+    case 'FICHIER': return { label: 'Réponse du fichier', tone: 'info' }
     default: return { label: mode ? String(mode) : '—', tone: 'neutral' }
   }
 }
@@ -43,6 +44,10 @@ export function modeMeta(mode: Mode | string | null | undefined): { label: strin
 export function eventMeta(type: string): { label: string; tone: Tone } {
   switch (type) {
     case 'ACCESS_GRANTED': return { label: 'Réponse', tone: 'ok' }
+    case 'FILE_UPLOADED': return { label: 'Fichier téléversé', tone: 'info' }
+    case 'FILE_ANALYZED': return { label: 'Fichier analysé', tone: 'ok' }
+    case 'FILE_REJECTED': return { label: 'Fichier refusé', tone: 'warn' }
+    case 'REPORT_EXPORTED': return { label: 'Rapport exporté', tone: 'info' }
     case 'ACCESS_DENIED': return { label: 'Accès refusé', tone: 'danger' }
     case 'NO_ANSWER': return { label: 'Sans réponse', tone: 'warn' }
     case 'CLARIFICATION_REQUESTED': return { label: 'Précision', tone: 'info' }

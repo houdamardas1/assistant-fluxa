@@ -192,7 +192,7 @@ export function AssistantMessage({
           <motion.div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 px-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
             {!special && <Badge tone={meta.tone}>{meta.label}</Badge>}
             {result.departement && <Badge tone="neutral">{roleLabel(result.departement)}</Badge>}
-            {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT') && (
+            {(result.mode === 'RAG' || result.mode === 'MULTI_INTENT' || result.mode === 'FICHIER') && (
               verified ? <VerifiedBadge /> : (result.fondement != null || result.confidence > 0)
                 ? <ConfidenceRing value={result.fondement ?? result.confidence} grounded={result.fondement != null} />
                 : null

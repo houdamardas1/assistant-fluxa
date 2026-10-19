@@ -18,7 +18,7 @@ export interface LoginResponse {
 }
 
 export type Mode =
-  | 'RAG' | 'MULTI_INTENT' | 'GENERAL' | 'ABSENT' | 'HORS_PERIMETRE' | 'BLOQUE' | 'CLARIFICATION'
+  | 'FICHIER' | 'RAG' | 'MULTI_INTENT' | 'GENERAL' | 'ABSENT' | 'HORS_PERIMETRE' | 'BLOQUE' | 'CLARIFICATION'
 
 export interface Source {
   verifie?: boolean
@@ -157,3 +157,17 @@ export interface KpiItem {
   valeur_precedente: number | null
   variation_pct: number | null
 }
+
+export interface FileInfo {
+  file_id: string
+  nom: string
+  type: string
+  taille: number
+  pages: number
+  extraits: number
+  ecartes: number
+  avertissements: string[]
+  expire_dans: number
+}
+
+export type FileAnswer = AskResponse

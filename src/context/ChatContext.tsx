@@ -2,7 +2,7 @@ import {
   createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode,
 } from 'react'
 import { ApiError, api } from '../lib/api'
-import type { AskResponse, HistoryItem } from '../lib/types'
+import type { AskResponse, FileInfo, HistoryItem } from '../lib/types'
 
 export type ChatMessage =
   | { id: string; role: 'user'; content: string }
@@ -21,6 +21,11 @@ interface ChatValue {
   send: (question: string) => Promise<void>
   reset: () => void
   restore: (item: HistoryItem) => void
+  attachment: FileInfo | null
+  uploading: boolean
+  uploadError: string | null
+  attach: (file: File) => Promise<void>
+  detach: () => void
 }
 
 const Ctx = createContext<ChatValue | null>(null)
@@ -32,6 +37,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<Pending | null>(null)
   const [historyVersion, setHistoryVersion] = useState(0)
   const busy = useRef(false)
+  const [attachment, setAttachment] = useState<FileInfo | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const send = useCallback(async (question: string) => {
     const q = question.trim()
@@ -42,7 +50,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setPending({ question: q, startedAt })
 
     try {
-      const result = await api.ask(q)
+      const result = attachment
+        ? await api.askFile(attachment.file_id, q)
+        : await api.ask(q)
       setMessages((m) => [
         ...m,
         { id: uid(), role: 'assistant', kind: 'answer', result, latencyMs: Date.now() - startedAt, animate: true },
@@ -56,9 +66,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setPending(null)
       setHistoryVersion((v) => v + 1)
     }
+  }, [attachment])
+
+  const attach = useCallback(async (file: File) => {
+    if (busy.current) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      setAttachment(await api.uploadFile(file))
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : 'Téléversement impossible.')
+    } finally {
+      setUploading(false)
+    }
   }, [])
 
-  const reset = useCallback(() => setMessages([]), [])
+  const detach = useCallback(() => {
+    if (attachment) api.deleteFile(attachment.file_id).catch(() => undefined)
+    setAttachment(null)
+    setUploadError(null)
+  }, [attachment])
+
+  const reset = useCallback(() => {
+    setMessages([])
+    detach()
+  }, [detach])
 
   const restore = useCallback((item: HistoryItem) => {
     if (busy.current) return
@@ -75,8 +107,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ messages, pending, historyVersion, send, reset, restore }),
-    [messages, pending, historyVersion, send, reset, restore],
+    () => ({
+      messages, pending, historyVersion, send, reset, restore,
+      attachment, uploading, uploadError, attach, detach,
+    }),
+    [messages, pending, historyVersion, send, reset, restore, attachment, uploading, uploadError, attach, detach],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
