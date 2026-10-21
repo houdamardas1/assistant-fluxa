@@ -92,7 +92,12 @@ export function formatRelative(iso: string, now: number = Date.now()): string {
 }
 
 export function firstName(displayName: string): string {
-  return displayName.trim().split(/\s+/)[0] || displayName
+  const nom = displayName.trim()
+  // Comptes de demonstration ("Profil Rh") : on garde le nom entier, sigles en majuscules.
+  if (/^profil\s+/i.test(nom)) {
+    return nom.split(/\s+/).map((m) => (m.length <= 2 ? m.toUpperCase() : m)).join(' ')
+  }
+  return nom.split(/\s+/)[0] || displayName
 }
 
 /** Suggestions construites a partir des documents REELLEMENT accessibles. */
@@ -126,4 +131,12 @@ export const CLASSIFICATION_META: Record<string, { label: string; tone: Tone }> 
 
 export function classificationMeta(niveau: string): { label: string; tone: Tone } {
   return CLASSIFICATION_META[niveau] ?? { label: niveau, tone: 'neutral' }
+}
+
+/** Libelle de l'emplacement d'un passage : page pour un PDF, section pour un document Word. */
+export function emplacementLabel(fichier: string | null | undefined, page: number | null | undefined): string {
+  if (page === null || page === undefined) return ''
+  const ext = (fichier ?? '').toLowerCase().split('.').pop() ?? ''
+  const mot = ext === 'docx' || ext === 'doc' ? 'Section' : 'Page'
+  return `${mot} ${page}`
 }

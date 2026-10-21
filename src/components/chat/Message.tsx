@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTypewriter } from '../../hooks/useTypewriter'
 import { useElapsed } from '../../hooks/useElapsed'
-import { classificationMeta, cleanName, fileLabel, formatMs, modeMeta, roleLabel, TYPE_LABELS } from '../../lib/format'
+import { classificationMeta, cleanName, emplacementLabel, fileLabel, formatMs, modeMeta, roleLabel, TYPE_LABELS } from '../../lib/format'
 import type { AskResponse, Mode, Source } from '../../lib/types'
 import { Badge } from '../ui/Badge'
 import { Icon, LogoMark, type IconName } from '../ui/Icons'
@@ -35,11 +35,11 @@ function AnswerText({ text, caret, onCite }: { text: string; caret: boolean; onC
         p.type === 'text' ? (
           <span key={i}>{p.value}</span>
         ) : (
-          <span key={i} className="mx-0.5 inline-flex gap-0.5 align-baseline">
+          <span key={i} className="mx-0.5 inline-flex items-baseline gap-1.5 align-baseline">
             {p.nums.map((n) => (
               <button
                 key={n} type="button" onClick={() => onCite(n)} aria-label={`Voir la source ${n}`}
-                className="rounded-md bg-brand/15 px-1.5 text-xs font-semibold text-brand transition hover:bg-brand/30"
+                className="min-w-[1.375rem] rounded-md bg-brand/15 px-1.5 text-center text-xs font-semibold text-brand transition hover:bg-brand/30"
               >
                 {n}
               </button>
@@ -103,7 +103,7 @@ function SourceCard({ source, domId, highlighted, index }: { source: Source; dom
         <div className="min-w-0 flex-1">
           <div className="truncate font-medium">{source.fichier ? fileLabel(source.fichier) : 'Document'}</div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">
-            {source.page !== null && <span>Page {source.page}</span>}
+            {source.page !== null && <span>{emplacementLabel(source.fichier, source.page)}</span>}
             {source.entreprise && <Badge tone="neutral">{cleanName(source.entreprise)}</Badge>}
             {source.type && <Badge tone="plum">{TYPE_LABELS[source.type] ?? source.type}</Badge>}
             {source.classification && (

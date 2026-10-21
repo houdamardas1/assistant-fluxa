@@ -50,7 +50,7 @@ export function LogoMark({ size = 36 }: { size?: number }) {
         </linearGradient>
       </defs>
       <rect width="64" height="64" rx="16" fill="#0b1220" />
-      <path d="M14 44V20l18 14 18-14v24" fill="none" stroke="url(#mei-g)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 48V18h24M22 33h16" fill="none" stroke="url(#mei-g)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
