@@ -54,3 +54,15 @@ def test_index_reel_invariant_et_aucune_regression():
         assert apres == avant, (c.get("fichier_source"), sorted(avant - apres))
     inconnus = {c.get("fichier_source") for c in m} - set(CLASSIFICATION_DOCUMENTS)
     assert not inconnus, "documents sans classification : %s" % sorted(inconnus)
+
+
+from app.services.rag_service import to_public
+
+
+def test_les_sources_publiques_portent_leur_niveau():
+    r = {"answer": "x", "mode": "RAG", "cited_sources": [
+        (1, {"fichier_source": "Wafa_Assurance_RFA_2025.pdf", "page": 3, "entreprise": "Wafa_Assurance", "type_document": "entreprise"}),
+        (2, {"fichier_source": "Code_du_Travail_Loi_65-99.pdf", "page": 9, "type_document": "public_reglementaire"}),
+    ]}
+    niveaux = [s["classification"] for s in to_public(r)["sources"]]
+    assert niveaux == ["CONFIDENTIAL", "PUBLIC"]

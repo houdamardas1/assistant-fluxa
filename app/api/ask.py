@@ -25,6 +25,7 @@ class AskRequest(BaseModel):
 
 
 class Source(BaseModel):
+    classification: Optional[str] = None
     n: int
     fichier: Optional[str] = None
     page: Optional[int] = None

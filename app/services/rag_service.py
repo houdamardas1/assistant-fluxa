@@ -25,6 +25,9 @@ def event_for_mode(mode: str) -> str:
     return _EVENEMENT_PAR_MODE.get(mode, "ACCESS_GRANTED")
 
 
+from rag.classification import niveau_du_fichier  # noqa: E402
+
+
 def to_public(result: dict) -> dict:
     """Vue publique d'un resultat du pipeline : aucun contenu de chunk, aucun
     score interne, seulement la reponse et ses sources citees."""
@@ -35,6 +38,7 @@ def to_public(result: dict) -> dict:
             "page": r.get("page"),
             "entreprise": r.get("entreprise"),
             "type": r.get("type_document"),
+            "classification": niveau_du_fichier(r.get("fichier_source")),
             "demo": bool(r.get("is_synthetic", False)),
             "verifie": result.get("source_donnees") == "kpi_verifie",
         }
