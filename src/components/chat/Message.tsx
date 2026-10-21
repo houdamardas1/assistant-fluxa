@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTypewriter } from '../../hooks/useTypewriter'
 import { useElapsed } from '../../hooks/useElapsed'
-import { cleanName, fileLabel, formatMs, modeMeta, roleLabel, TYPE_LABELS } from '../../lib/format'
+import { classificationMeta, cleanName, fileLabel, formatMs, modeMeta, roleLabel, TYPE_LABELS } from '../../lib/format'
 import type { AskResponse, Mode, Source } from '../../lib/types'
 import { Badge } from '../ui/Badge'
 import { Icon, LogoMark, type IconName } from '../ui/Icons'
@@ -106,6 +106,9 @@ function SourceCard({ source, domId, highlighted, index }: { source: Source; dom
             {source.page !== null && <span>Page {source.page}</span>}
             {source.entreprise && <Badge tone="neutral">{cleanName(source.entreprise)}</Badge>}
             {source.type && <Badge tone="plum">{TYPE_LABELS[source.type] ?? source.type}</Badge>}
+            {source.classification && (
+              <Badge tone={classificationMeta(source.classification).tone}>{classificationMeta(source.classification).label}</Badge>
+            )}
             {source.verifie && <Badge tone="neutral">Valeur vérifiée</Badge>}
             {source.demo && <Badge tone="warn">Donnée de démonstration</Badge>}
           </div>

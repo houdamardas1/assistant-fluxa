@@ -22,6 +22,7 @@ export type Mode =
 
 export interface Source {
   verifie?: boolean
+  classification?: string | null
   n: number
   fichier: string | null
   page: number | null
@@ -55,6 +56,7 @@ export interface HistoryItem {
 
 export interface CorpusFile {
   file: string
+  classification?: string
   entreprise: string | null
   type: string
   departements: string[]

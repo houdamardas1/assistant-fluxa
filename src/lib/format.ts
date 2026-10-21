@@ -116,3 +116,14 @@ export function suggestionsFrom(stats: CorpusStats): string[] {
 export function isDirection(role: Role | undefined): boolean {
   return role === 'direction'
 }
+
+export const CLASSIFICATION_META: Record<string, { label: string; tone: Tone }> = {
+  PUBLIC: { label: 'Public', tone: 'ok' },
+  INTERNAL: { label: 'Interne', tone: 'info' },
+  CONFIDENTIAL: { label: 'Confidentiel', tone: 'warn' },
+  RESTRICTED: { label: 'Restreint', tone: 'danger' },
+}
+
+export function classificationMeta(niveau: string): { label: string; tone: Tone } {
+  return CLASSIFICATION_META[niveau] ?? { label: niveau, tone: 'neutral' }
+}

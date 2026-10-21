@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAsync } from '../hooks/useAsync'
 import { api } from '../lib/api'
-import { cleanName, fileLabel, roleLabel, TYPE_LABELS } from '../lib/format'
+import { classificationMeta, cleanName, fileLabel, roleLabel, TYPE_LABELS } from '../lib/format'
 import { Badge } from '../components/ui/Badge'
 import { Icon } from '../components/ui/Icons'
 import { ErrorBox, Skeleton } from '../components/ui/Skeleton'
@@ -81,6 +81,9 @@ export default function Documents() {
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   <Badge tone="plum">{TYPE_LABELS[f.type] ?? f.type}</Badge>
+                  {f.classification && (
+                    <Badge tone={classificationMeta(f.classification).tone}>{classificationMeta(f.classification).label}</Badge>
+                  )}
                   {f.entreprise && <Badge tone="neutral">{cleanName(f.entreprise)}</Badge>}
                   {f.departements.map((d) => <Badge key={d} tone="info">{roleLabel(d)}</Badge>)}
                   {f.demo && <Badge tone="warn">Démonstration</Badge>}
