@@ -183,7 +183,7 @@ Si la première création des applications échoue sur la lecture d'un secret, c
 **Non vérifié (validation par compilation uniquement).**
 - Aucun déploiement réel : les noms globaux (registre, stockage, coffre, serveur), les quotas de l'abonnement dans la région, la disponibilité des tailles de base de données et la propagation des rôles restent à confirmer au premier déploiement.
 - Le montage Azure Files et les droits du fichier pour l'utilisateur 1000 sont écrits d'après la documentation, non testés.
-- Les valeurs de `ENVIRONMENT` (`development`, `staging`, `production`) sont à confirmer par rapport à ce que le code de configuration de l'API accepte.
+- `ENVIRONMENT` est une chaîne libre : seule la valeur `development` assouplit le contrôle de la clé de signature (avertissement au lieu d'un refus de démarrer). Les trois valeurs utilisées sont acceptées ; hors `development`, une clé jugée faible empêche le démarrage. La clé générée par la procédure (48 caractères aléatoires) devrait passer, ce qui reste à confirmer au premier démarrage.
 - Le dimensionnement de l'API de dev (1 vCPU / 2 Gio) n'a pas été mesuré : le chargement de torch et du modèle peut exiger davantage de mémoire.
 - Les coûts sont des estimations.
 
