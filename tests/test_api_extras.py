@@ -26,8 +26,8 @@ def chunk(f, page, ent, dept, typ="entreprise"):
 class FakeRag:
     n_chunks = 4
     metadata = [
-        chunk("Wafa.pdf", 1, "Wafa_Assurance", "finance"),
-        chunk("Wafa.pdf", 64, "Wafa_Assurance", "finance"),
+        {**chunk("Wafa.pdf", 1, "Wafa_Assurance", "finance"), "tenant_id": "t1"},
+        {**chunk("Wafa.pdf", 64, "Wafa_Assurance", "finance"), "tenant_id": "t1"},
         chunk("Unimer.pdf", 19, "Unimer", "direction"),
         chunk("Travail.pdf", 90, None, "rh", "public_reglementaire"),
     ]

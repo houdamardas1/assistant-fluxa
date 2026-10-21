@@ -4,6 +4,7 @@ import re
 import faiss
 
 from .classification import habilitation_suffisante, niveau_du_chunk
+from .tenancy import visible_pour_tenant
 
 from .config import (
     ALIAS_ENTREPRISES,
@@ -63,7 +64,7 @@ def effective_allowed_roles(chunk: dict) -> set:
 
 
 def est_accessible(chunk: dict, user_role: str) -> bool:
-    return user_role in effective_allowed_roles(chunk)
+    return visible_pour_tenant(chunk) and user_role in effective_allowed_roles(chunk)
 
 
 def user_allowed_departments(user_role: str) -> set:
@@ -178,6 +179,9 @@ def search_without_rbac(query: str, model, index, metadata, top_k: int = 10):
             continue
 
         chunk = metadata[idx]
+
+        if not visible_pour_tenant(chunk):
+            continue
 
         if entreprises_visees and chunk.get("entreprise") not in entreprises_visees:
             continue

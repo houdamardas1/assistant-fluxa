@@ -346,3 +346,9 @@ Test d'OCR (EasyOCR, français) sur des pages réelles : la note 5.1.9 est lue a
 ## 26. Rapport PDF des indicateurs
 
 Le rapport est généré sans modèle de langage, à partir de la même fonction de filtrage par profil que la page Indicateurs : il ne peut pas contenir un indicateur que le profil ne voit pas. Chaque export est audité (REPORT_EXPORTED : utilisateur, profil, nombre d'indicateurs). Limites : polices standard du PDF (caractères hors alphabet latin non garantis), pas de graphiques, dates en UTC, et les 12 indicateurs restent ceux vérifiés manuellement.
+
+## 27. Isolation par tenant et etiquetage des departements
+
+L'isolation par tenant est appliquee dans la recherche (rag/tenancy.py) : un passage d'un autre tenant est invisible, sans message d'acces refuse. Les textes reglementaires publics sont partages. Le corpus de demonstration appartient au tenant `demo` (variable CORPUS_TENANT_ID). Limite : le tenant d'un passage est deduit du tenant du corpus et non stocke dans l'index ; un vrai multi-tenant demanderait un index par tenant (ou un champ tenant_id ingere) et, a l'echelle, Azure AI Search avec filtre de securite. Les indicateurs (KPI) et le rapport PDF ne sont pas filtres par tenant.
+
+L'etiquetage des departements est herite des metadonnees d'ingestion. Le profil Marketing accede ainsi a Auto Nejma (passages etiquetes marketing, niveau INTERNAL) mais pas a la loi 31-08. La classification ne fait que restreindre ces acces ; la revue de l'etiquetage est un travail futur.

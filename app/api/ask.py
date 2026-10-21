@@ -14,6 +14,7 @@ from app.services.rag_service import event_for_mode, to_public
 from rag.llm import QuotaError, mesurer_usage
 from rag.messages import MESSAGE_QUOTA
 from rag.security import MESSAGE_BLOQUE, detecter, mesurer_blocages
+from rag.tenancy import contexte_tenant
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Assistant"])
@@ -83,7 +84,8 @@ def ask(
 
     try:
         with mesurer_usage() as usage, mesurer_blocages() as docs_bloques:
-            resultat = state.rag.ask(body.question, principal.role)
+            with contexte_tenant(principal.tenant_id):
+                resultat = state.rag.ask(body.question, principal.role)
     except QuotaError:
         state.audit.record("QUOTA_ERROR", rid, question=body.question, **qui)
         raise HTTPException(status_code=503, detail=MESSAGE_QUOTA.replace("\n\n", " - "))
