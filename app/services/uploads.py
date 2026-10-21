@@ -528,6 +528,23 @@ def _score(fo: Any) -> Optional[float]:
     return float(fo) if isinstance(fo, (int, float)) else None
 
 
+_RE_ABSENCE = re.compile(
+    r"(aucun(?:e)?\s+(?:des\s+|de\s+ces\s+)?(?:extraits?|passages?|informations?|donn[ée]es?)"
+    r"|ne\s+(?:mentionn|contien|figur|pr[ée]cis|donn|trouv|parl)\w*"
+    r"|n['’]est\s+(?:pas\s+)?(?:mentionn|indiqu|pr[ée]cis|disponible)\w*"
+    r"|pas\s+d['’](?:information|donn[ée]e)"
+    r"|information\s+(?:absente|introuvable)"
+    r"|je\s+ne\s+trouve\s+pas)", re.I)
+_RE_RENVOI = re.compile(r"\[\s*(?:Source\s*)?\d+")
+
+
+def _est_un_refus(rep: str) -> bool:
+    """Reponse courte, sans aucun renvoi [n], qui dit que l'information est absente.
+    Une vraie reponse porte toujours des renvois : celle-ci ne doit ni citer de
+    source ni recevoir de score de fondement."""
+    return len(rep) < 400 and not _RE_RENVOI.search(rep) and bool(_RE_ABSENCE.search(rep))
+
+
 def repondre(f: Fichier, question: str, role: str, encodeur: Any = None) -> Dict[str, Any]:
     qvec = None
     if f.emb is not None and encodeur is not None:
@@ -551,6 +568,9 @@ def repondre(f: Fichier, question: str, role: str, encodeur: Any = None) -> Dict
     rep = str(rep or "")
     if sortie_fuite_prompt(rep):
         return {"answer": MESSAGE_SORTIE_INVALIDE, "fondement": None, "sources": [], "trouve": True}
+    if _est_un_refus(rep):
+        return {"answer": "Je ne trouve pas cette information dans le fichier « %s »." % f.nom,
+                "fondement": None, "sources": [], "trouve": False}
     cites = sorted({int(m) for m in re.findall(r"\[(?:Source\s*)?(\d+)", rep) if 0 < int(m) <= len(rag)})
     cites = cites or list(range(1, len(rag) + 1))
     sources = [{"n": i, "fichier": f.nom, "page": rag[i - 1]["page"], "entreprise": "Fichier téléversé",
