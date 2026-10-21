@@ -64,10 +64,10 @@ def score_lexical(
     if not query_words and not numero_article:
         return 0.0
 
-    content_lower = content.lower()
+    content_lower = _norm(content)
 
     matches = sum(
-        1 for w in query_words if re.search(rf"\b{re.escape(w)}\b", content_lower)
+        1 for w in query_words if re.search(rf"\b{re.escape(_norm(w))}\b", content_lower)
     )
     ratio = matches / len(query_words) if query_words else 0.0
 

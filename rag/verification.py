@@ -77,8 +77,9 @@ def local_relevance_fallback(query: str, contexts: list) -> tuple:
     if not query_words:
         return False, 0.0
 
-    texte = " ".join(c.get("content", "").lower() for c in top_contexts)
-    matches = sum(1 for w in query_words if re.search(rf"\b{re.escape(w)}\b", texte))
+    from .textutils import _norm as _norm_texte
+    texte = " ".join(_norm_texte(c.get("content", "")) for c in top_contexts)
+    matches = sum(1 for w in query_words if re.search(rf"\b{re.escape(_norm_texte(w))}\b", texte))
     match_ratio = matches / len(query_words)
     best_score = max(c.get("score", 0.0) for c in top_contexts)
 
