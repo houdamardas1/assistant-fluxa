@@ -63,3 +63,5 @@ dist/
 
 data/eval/smoke_ui_*.json
 tests_interface.md
+
+exemples/*.exe
