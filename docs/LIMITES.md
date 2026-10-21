@@ -352,3 +352,7 @@ Le rapport est généré sans modèle de langage, à partir de la même fonction
 L'isolation par tenant est appliquee dans la recherche (rag/tenancy.py) : un passage d'un autre tenant est invisible, sans message d'acces refuse. Les textes reglementaires publics sont partages. Le corpus de demonstration appartient au tenant `demo` (variable CORPUS_TENANT_ID). Limite : le tenant d'un passage est deduit du tenant du corpus et non stocke dans l'index ; un vrai multi-tenant demanderait un index par tenant (ou un champ tenant_id ingere) et, a l'echelle, Azure AI Search avec filtre de securite. Les indicateurs (KPI) et le rapport PDF ne sont pas filtres par tenant.
 
 L'etiquetage des departements est herite des metadonnees d'ingestion. Le profil Marketing accede ainsi a Auto Nejma (passages etiquetes marketing, niveau INTERNAL) mais pas a la loi 31-08. La classification ne fait que restreindre ces acces ; la revue de l'etiquetage est un travail futur.
+
+## 28. Quota du fournisseur LLM
+
+Le palier gratuit du modèle plafonne à 200 000 tokens par jour (erreur 429 « tokens per day »). Une évaluation complète de 55 cas en consomme une grande partie, et l'API répond par un message de quota lorsque la limite est atteinte (événement QUOTA_ERROR dans l'audit). Pour une démonstration, il faut préserver le quota (pas d'évaluation le jour même) ou utiliser un palier payant. Le modèle de vérification et le modèle de génération partagent le même plafond.
