@@ -3,6 +3,8 @@
 import re
 import faiss
 
+from .classification import habilitation_suffisante, niveau_du_chunk
+
 from .config import (
     ALIAS_ENTREPRISES,
     ALLOW_PUBLIC_ONLY_DEPARTMENTS,
@@ -21,7 +23,7 @@ from .config import (
 SEUIL_VETO_IMPLICITE = 0.70
 
 
-def effective_allowed_roles(chunk: dict) -> set:
+def _roles_avant_classification(chunk: dict) -> set:
     """Roles autorises a lire un chunk (RBAC strict : les textes
     reglementaires suivent les memes regles que les documents d'entreprise).
 
@@ -51,6 +53,13 @@ def effective_allowed_roles(chunk: dict) -> set:
         return set(RBAC_POLICY[ent])
 
     return set(chunk.get("allowed_roles", []))
+
+
+def effective_allowed_roles(chunk: dict) -> set:
+    """Roles du controle par departement/entreprise, restreints a ceux dont
+    l'habilitation couvre la classification du document (rag/classification.py)."""
+    niveau = niveau_du_chunk(chunk)
+    return {r for r in _roles_avant_classification(chunk) if habilitation_suffisante(r, niveau)}
 
 
 def est_accessible(chunk: dict, user_role: str) -> bool:
