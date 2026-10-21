@@ -24,6 +24,7 @@ from .config import (
 )
 from .pipeline import process_question_hybride
 from .textutils import _norm
+from .security import MESSAGE_BLOQUE, detecter
 
 
 #
@@ -131,11 +132,18 @@ def evaluer_cas(cas: dict, model, index, metadata) -> dict:
     debut = time.perf_counter()
     erreur, result = None, None
 
+    # Meme barriere d'entree que l'API (app/api/ask.py) : sans elle, l'evaluation
+    # ne teste pas ce que l'utilisateur rencontre reellement.
+    verdict = detecter(cas["question"])
+
     try:
-        result = process_question_hybride(
-            cas["question"], model, index, metadata, role,
-            selected_department=cas.get("forcer_departement"),
-        )
+        if verdict.bloque:
+            result = {"mode": "BLOQUE"}
+        else:
+            result = process_question_hybride(
+                cas["question"], model, index, metadata, role,
+                selected_department=cas.get("forcer_departement"),
+            )
     except Exception as e:
         erreur = f"{type(e).__name__}: {e}"
 
@@ -158,6 +166,19 @@ def evaluer_cas(cas: dict, model, index, metadata) -> dict:
     }
 
     if result is None:
+        return sortie
+
+    if verdict.bloque:
+        # Un refus est attendu en HORS_PERIMETRE comme en BLOQUE ; une question
+        # legitime bloquee a tort (faux positif) fait echouer le cas.
+        refus_attendu = bool({"BLOQUE", "HORS_PERIMETRE"} & set(attendus))
+        sortie.update(mode="BLOQUE", reponse=MESSAGE_BLOQUE)
+        if attendus:
+            sortie["verifs"] = {"mode": refus_attendu}
+            sortie["infos"] = {"filtre": "%s/%s" % (verdict.categorie, verdict.regle)}
+            sortie["passe"] = refus_attendu
+        else:
+            sortie["passe"] = None
         return sortie
 
     mode = result["mode"]
