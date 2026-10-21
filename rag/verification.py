@@ -203,6 +203,19 @@ def _regles_verification(query: str, contexts: list) -> str:
     return regles
 
 
+def _appel_verification(**params):
+    """Appel du verificateur avec un effort de raisonnement faible : il ne produit
+    qu'un petit JSON, et le raisonnement par defaut coutait ~500 tokens par question.
+    Si le modele refuse le parametre, on reessaie sans lui (comme rag/llm.py)."""
+    try:
+        return groq_client.chat.completions.create(reasoning_effort="low", **params)
+    except RateLimitError:
+        raise
+    except Exception as e:
+        _dbg(f"reasoning_effort refuse ({e}) : nouvel essai sans ce parametre.")
+        return groq_client.chat.completions.create(**params)
+
+
 def verify_relevance(query: str, contexts: list) -> tuple:
     """Retourne (can_answer, confidence, verify_error, extraits)."""
     if not contexts:
@@ -241,7 +254,7 @@ def verify_relevance(query: str, contexts: list) -> tuple:
     )
 
     try:
-        response = groq_client.chat.completions.create(
+        response = _appel_verification(
             model=GROQ_VERIFY_MODEL,
             messages=[
                 {
