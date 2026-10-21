@@ -6,6 +6,8 @@ voit donc jamais la taille ni la liste des documents qui lui sont interdits."""
 from collections import defaultdict
 from typing import Callable, Iterable
 
+from rag.classification import niveau_du_fichier
+
 
 def _tri(compteur: dict, cle: str) -> list:
     return sorted(
@@ -41,6 +43,7 @@ def corpus_stats(
             "file": nom, "entreprise": entreprise, "type": type_doc,
             "departements": set(), "chunks": 0, "max_page": 0,
             "demo": bool(chunk.get("is_synthetic")),
+            "classification": niveau_du_fichier(chunk.get("fichier_source")),
         })
         f["chunks"] += 1
         f["departements"].update(deps)

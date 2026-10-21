@@ -66,3 +66,12 @@ def test_les_sources_publiques_portent_leur_niveau():
     ]}
     niveaux = [s["classification"] for s in to_public(r)["sources"]]
     assert niveaux == ["CONFIDENTIAL", "PUBLIC"]
+
+
+from app.services.corpus import corpus_stats
+
+
+def test_le_catalogue_expose_le_niveau():
+    meta = [{"fichier_source": "CDG_Capital_RFA_2024.pdf", "entreprise": "CDG_Capital", "page": 1}]
+    out = corpus_stats(meta, "finance", lambda c, r: True, lambda c: set())
+    assert out["files"][0]["classification"] == "CONFIDENTIAL"

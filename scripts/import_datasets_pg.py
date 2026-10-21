@@ -1,4 +1,4 @@
-﻿"""Import des jeux de donnees dans PostgreSQL (schema `corpus`).
+"""Import des jeux de donnees dans PostgreSQL (schema `corpus`).
 
 Usage (depuis backend/) :  python scripts/import_datasets_pg.py
 
@@ -8,6 +8,10 @@ Connexion : POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB du fichier .env,
 sur 127.0.0.1:15432 (PG_HOST / PG_PORT pour changer). Rien n'est affiche
 du mot de passe.
 """
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
+from rag.classification import niveau_du_fichier  # noqa: E402
 import hashlib
 import json
 import os
@@ -43,7 +47,7 @@ CREATE SCHEMA IF NOT EXISTS corpus;
 CREATE TABLE IF NOT EXISTS corpus.documents (
   fichier_source text PRIMARY KEY, entreprise text, secteur text,
   type_document text, is_synthetic boolean, nb_passages integer,
-  nb_pages integer, chemin_raw text, taille_octets bigint, sha256 text,
+  nb_pages integer, chemin_raw text, taille_octets bigint, sha256 text, classification text,
   importe_le timestamptz DEFAULT now());
 CREATE TABLE IF NOT EXISTS corpus.passages (
   faiss_id integer PRIMARY KEY,
@@ -139,10 +143,10 @@ def main():
             sha = hashlib.sha256(p.read_bytes()).hexdigest()
         cur.execute(
             "INSERT INTO corpus.documents (fichier_source, entreprise, secteur, type_document,"
-            " is_synthetic, nb_passages, nb_pages, chemin_raw, taille_octets, sha256)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            " is_synthetic, nb_passages, nb_pages, chemin_raw, taille_octets, sha256, classification)"
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (f, d["entreprise"], d["secteur"], d["type_document"], d["is_synthetic"],
-             d["n"], d["pages"], chemin, taille, sha))
+             d["n"], d["pages"], chemin, taille, sha, niveau_du_fichier(f)))
 
     for i, m in enumerate(metadata):
         extra = {k: v for k, v in m.items() if k not in CONNUS}
