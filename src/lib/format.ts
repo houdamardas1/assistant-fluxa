@@ -24,7 +24,7 @@ export function cleanName(name: string): string {
 
 /** "Code_du_Travail_Loi_65-99.pdf" -> "Code du Travail Loi 65-99" */
 export function fileLabel(file: string): string {
-  return cleanName(file.replace(/\.pdf$/i, ''))
+  return cleanName(file.replace(/\.(pdf|docx?|pptx?|xlsx?|csv|txt|md)$/i, ''))
 }
 
 export function modeMeta(mode: Mode | string | null | undefined): { label: string; tone: Tone } {
