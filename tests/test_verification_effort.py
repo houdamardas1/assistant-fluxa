@@ -15,12 +15,13 @@ def _faux_client(create):
     return SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
 
 
-def test_la_verification_demande_un_effort_de_raisonnement_faible(monkeypatch):
+def test_la_verification_demande_un_effort_de_raisonnement_moyen(monkeypatch):
+    monkeypatch.delenv("GROQ_VERIFY_EFFORT", raising=False)
     appels = []
     monkeypatch.setattr(V, "_compter", lambda r: r)
     monkeypatch.setattr(V, "groq_client", _faux_client(lambda **k: appels.append(k) or _reponse()))
     can_answer, confidence, erreur, extraits = V.verify_relevance("periode d'essai", CONTEXTES)
-    assert appels[0].get("reasoning_effort") == "low"
+    assert appels[0].get("reasoning_effort") == "medium"
     assert can_answer is True and erreur is False and extraits == [1]
 
 

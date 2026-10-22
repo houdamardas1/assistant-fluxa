@@ -205,11 +205,12 @@ def _regles_verification(query: str, contexts: list) -> str:
 
 
 def _appel_verification(**params):
+    import os
     """Appel du verificateur avec un effort de raisonnement faible : il ne produit
     qu'un petit JSON, et le raisonnement par defaut coutait ~500 tokens par question.
     Si le modele refuse le parametre, on reessaie sans lui (comme rag/llm.py)."""
     try:
-        return groq_client.chat.completions.create(reasoning_effort="low", **params)
+        return groq_client.chat.completions.create(reasoning_effort=os.environ.get("GROQ_VERIFY_EFFORT", "medium"), **params)
     except RateLimitError:
         raise
     except Exception as e:
