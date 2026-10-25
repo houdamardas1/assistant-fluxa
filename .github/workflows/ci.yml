@@ -20,6 +20,10 @@ jobs:
 
   secret-scan:
     runs-on: ubuntu-latest
+    # gitleaks lit les commits de la PR : sans cette permission, 403 sur pulls/{n}/commits.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:

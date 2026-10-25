@@ -37,13 +37,17 @@ function SidebarNav({ items, variant, onNavigate }: { items: NavItem[]; variant:
         >
           {({ isActive }) => (
             <>
-              {isActive && (
+              {/* Pas de layoutId dans le tiroir mobile : l'animation partagee bloquait sa fermeture
+                  (voile invisible laisse par-dessus l'ecran, plus aucun clic possible). */}
+              {isActive && (variant === 'mobile' ? (
+                <span className="absolute inset-0 rounded-xl bg-brand/10 ring-1 ring-brand/25" />
+              ) : (
                 <motion.span
                   layoutId={`nav-active-${variant}`}
                   className="absolute inset-0 rounded-xl bg-brand/10 ring-1 ring-brand/25"
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                 />
-              )}
+              ))}
               <span className={`relative z-10 flex items-center gap-3 ${isActive ? 'text-brand' : ''}`}>
                 <Icon name={it.icon} />
                 {it.label}
@@ -110,7 +114,8 @@ export default function AppShell() {
 
         <AnimatePresence>
           {menuOpen && (
-            <motion.div className="fixed inset-0 z-40 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            // pointerEvents 'none' a la sortie : le voile en cours de fermeture ne bloque jamais les clics.
+            <motion.div className="fixed inset-0 z-40 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: 'none' }}>
               <button type="button" aria-label="Fermer le menu" className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
               <motion.aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-line bg-surface p-4" initial={{ x: -288 }} animate={{ x: 0 }} exit={{ x: -288 }} transition={{ type: 'spring', stiffness: 360, damping: 36 }}>
                 <div className="flex items-center justify-between">
