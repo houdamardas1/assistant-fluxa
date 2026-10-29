@@ -24,7 +24,7 @@ qu'inventée.
 | | |
 |---|---|
 | Corpus indexé | ~3 000 passages, réponses avec citation des sources |
-| Évaluation sur le vrai pipeline | 55 cas, 100 % de réussite ([détail](backend/docs/EVALUATION.md)) |
+| Évaluation sur le vrai pipeline | 55 / 55 cas réussis au 21 octobre 2026 ([détail](backend/docs/EVALUATION.md)) |
 | Injections de prompt | 9 / 9 bloquées (français, anglais, arabe, darija) |
 | Accès interdits (RBAC) | 7 / 7 refusés, 8 rôles métier, 4 niveaux de classification |
 | Tests automatisés | 229 tests, CI GitHub Actions avec analyse de secrets (gitleaks) |
@@ -84,6 +84,10 @@ corpus brut et l'index ne sont pas versionnés.
 - [Environnements dev / staging / prod](backend/docs/ENVIRONNEMENTS.md)
 - [Architecture Azure](backend/docs/ARCHITECTURE_AZURE.md)
 - [Limites connues](backend/docs/LIMITES.md)
+
+## Licence
+
+Code distribué sous licence [MIT](LICENSE), © 2026 Houda Mardas.
 
 ## Auteure
 
