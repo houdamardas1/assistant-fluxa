@@ -1,0 +1,5 @@
+# Faux positifs vérifiés :
+# - mot de passe factice d'exemple dans la documentation Azure
+43f27b7150aab5248c0491e5d33b6f6337214e07:docs/ARCHITECTURE_AZURE.md:generic-api-key:224
+# - identifiant public du rôle Azure intégré « Key Vault Secrets User »
+43f27b7150aab5248c0491e5d33b6f6337214e07:infra/modules/keyvault.bicep:generic-api-key:31
