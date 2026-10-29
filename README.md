@@ -1,4 +1,13 @@
-# Fluxa Intelligence : assistant d'entreprise sécurisé (RAG)
+# Fluxa : assistant documentaire IA sécurisé (RAG)
+
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![FAISS](https://img.shields.io/badge/FAISS-recherche%20vectorielle-0467DF)
+![Groq](https://img.shields.io/badge/LLM-Groq-F55036)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Azure Bicep](https://img.shields.io/badge/Azure-Bicep-0078D4?logo=microsoftazure&logoColor=white)
+![CI](https://github.com/houdamardas1/fluxa-backend/actions/workflows/ci.yml/badge.svg)
 
 Fluxa répond aux questions des collaborateurs d'une entreprise à partir de ses
 propres documents, **en respectant qui a le droit de voir quoi**. Chaque réponse
@@ -6,7 +15,29 @@ cite ses sources, chaque accès est tracé, et une question hors périmètre ou
 malveillante est refusée plutôt qu'inventée.
 
 Ce dépôt contient le **backend** (API, moteur RAG, sécurité, audit). L'interface
-web est dans le dépôt `fluxa-frontend`.
+web est dans le dépôt [fluxa-frontend](https://github.com/houdamardas1/fluxa-frontend).
+
+> Conçu et développé par **[Houda Mardas](#auteure)**, AI Engineer, pendant son stage
+> chez Alexsys Solutions (Casablanca, 2026).
+
+## Résultats clés
+
+| | |
+|---|---|
+| Corpus indexé | ~3 000 passages, réponses avec citation des sources |
+| Évaluation sur le vrai pipeline | 55 cas, 100 % de réussite ([détail](docs/EVALUATION.md)) |
+| Injections de prompt | 9 / 9 bloquées (français, anglais, arabe, darija) |
+| Accès interdits (RBAC) | 7 / 7 refusés, 8 rôles métier |
+| Tests automatisés | 229 tests, CI GitHub Actions avec analyse de secrets (gitleaks) |
+| Déploiement | Docker, 3 environnements (dev, staging, prod), architecture Azure en 9 modules Bicep |
+
+## Stack technique
+
+- **IA / RAG** : sentence-transformers (embeddings), FAISS, recherche hybride vectorielle + lexicale, Groq (LLM), vérification de pertinence
+- **Backend** : Python 3.11, FastAPI, Pydantic, JWT, traitement asynchrone
+- **Données** : PostgreSQL (audit), SQLite (comptes), ingestion PDF / DOCX / XLSX / PPTX
+- **DevOps** : Docker, Docker Compose, GitHub Actions, gitleaks, Azure Container Apps, Key Vault, Bicep
+- **Frontend** ([dépôt séparé](https://github.com/houdamardas1/fluxa-frontend)) : React, TypeScript, Vite, Tailwind
 
 ## Ce que fait la plateforme
 
@@ -53,7 +84,7 @@ Le **corpus brut** (`data/raw/`), l'**index FAISS** (`data/index/`) et les bases
 et d'audit ne le sont pas : l'index se reconstruit avec `build_index.py` à partir de vos
 propres documents. Les mots de passe de démonstration ne sont jamais versionnés.
 
-Ce projet a été réalisé dans le cadre d'un stage chez Alexsys Solutions.
+Ce projet a été réalisé par Houda Mardas dans le cadre d'un stage chez Alexsys Solutions.
 
 ## Démarrage rapide (Docker)
 
@@ -170,3 +201,16 @@ Le détail complet est dans [docs/LIMITES.md](docs/LIMITES.md). Les plus importa
 - Mots de passe de démonstration aléatoires, à renouveler avant tout partage.
 - Les passages interdits à un rôle ne sont jamais transmis au modèle.
 - Les fichiers téléversés restent en mémoire et expirent après 30 minutes.
+
+## Auteure
+
+**Houda Mardas** · AI Engineer (IA générative, RAG, agents IA) · Ingénieure d'État en
+Génie Informatique & IA (HESTIM, Casablanca)
+
+J'ai conçu et développé Fluxa de bout en bout : moteur RAG et recherche hybride,
+contrôle d'accès et filtre anti-injection, API FastAPI, jeu d'évaluation, tests et CI,
+conteneurisation et architecture Azure, ainsi que l'interface web React.
+
+- GitHub : [@houdamardas1](https://github.com/houdamardas1)
+- LinkedIn : [houda-m-567987243](https://www.linkedin.com/in/houda-m-567987243)
+- Portfolio : [portfoliohouda-mardas.netlify.app](https://portfoliohouda-mardas.netlify.app)
