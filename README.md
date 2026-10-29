@@ -46,6 +46,15 @@ flowchart LR
 Le déploiement cible sur Azure (Container Apps, PostgreSQL, Key Vault, Bicep) est
 décrit dans [docs/ARCHITECTURE_AZURE.md](docs/ARCHITECTURE_AZURE.md).
 
+## Ce que contient ce dépôt public
+
+Le code, les tests, le jeu d'évaluation, les modèles Bicep et la documentation sont inclus.
+Le **corpus brut** (`data/raw/`), l'**index FAISS** (`data/index/`) et les bases de comptes
+et d'audit ne le sont pas : l'index se reconstruit avec `build_index.py` à partir de vos
+propres documents. Les mots de passe de démonstration ne sont jamais versionnés.
+
+Ce projet a été réalisé dans le cadre d'un stage chez Alexsys Solutions.
+
 ## Démarrage rapide (Docker)
 
 Prérequis : Docker Desktop, une clé API Groq.
