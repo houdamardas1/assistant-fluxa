@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Couleurs en triplets RGB : permet bg-brand/10 et le theme clair/sombre par variables. */
+:root {
+  --bg: 243 246 250;
+  --surface: 255 255 255;
+  --ink: 15 23 42;
+  --muted: 100 116 139;
+  --line: 226 232 240;
+  --brand: 13 148 136;
+  --gold: 202 138 4;
+  --ok: 5 150 105;
+  --info: 2 132 199;
+  --warn: 217 119 6;
+  --danger: 225 29 72;
+  --plum: 124 58 237;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 6 11 22;
+  --surface: 13 21 38;
+  --ink: 226 232 240;
+  --muted: 148 163 184;
+  --line: 30 41 59;
+  --brand: 45 212 191;
+  --gold: 251 191 36;
+  --ok: 52 211 153;
+  --info: 56 189 248;
+  --warn: 251 191 36;
+  --danger: 251 113 133;
+  --plum: 167 139 250;
+  color-scheme: dark;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection { background: rgb(var(--brand) / 0.28); }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--muted) / 0.35) transparent; }
+  button { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60; }
+  input, textarea { @apply focus-visible:outline-none; }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface/80 shadow-soft backdrop-blur;
+  }
+  .field {
+    @apply w-full rounded-xl border border-line bg-bg/60 px-4 py-3 text-sm text-ink
+      placeholder:text-muted/70 transition focus:border-brand focus:ring-4 focus:ring-brand/15;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm
+      font-semibold text-white shadow-glow transition hover:brightness-110 active:scale-[0.99]
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .dark .btn-primary { @apply text-slate-950; }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgb(var(--line) / 0.55) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--line) / 0.55) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+}

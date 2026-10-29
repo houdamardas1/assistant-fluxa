@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -6,8 +6,11 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  backend-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     env:
       # Secret GitHub si présent, sinon fausse clé (les tests n'appellent jamais Groq)
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || 'gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}
@@ -18,8 +21,33 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: backend/requirements.txt
+      # torch CPU : la version CUDA tirée par sentence-transformers remplit le disque du runner
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -r requirements.txt pytest
       - run: python -m pytest -q
+
+  backend-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t fluxa-backend:ci backend
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
 
   secret-scan:
     runs-on: ubuntu-latest
@@ -27,12 +55,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker build -t fluxa-backend:ci .
+      # Analyse de tout l'historique. gitleaks-action en mode PR échoue quand la PR
+      # contient un commit racine (historique du frontend intégré par subtree).
+      - run: >-
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo"
+          zricethezav/gitleaks:v8.24.3 git /repo --redact -v
