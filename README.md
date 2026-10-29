@@ -9,6 +9,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![Azure Bicep](https://img.shields.io/badge/Azure-Bicep-0078D4?logo=microsoftazure&logoColor=white)
+[![Licence MIT](https://img.shields.io/badge/Licence-MIT-green)](LICENSE)
 
 Fluxa répond aux questions des collaborateurs d'une entreprise à partir de ses propres
 documents, **en respectant qui a le droit de voir quoi**. Chaque réponse cite ses sources,

@@ -24,7 +24,7 @@ web est dans [`../frontend`](../frontend).
 | | |
 |---|---|
 | Corpus indexé | ~3 000 passages, réponses avec citation des sources |
-| Évaluation sur le vrai pipeline | 55 cas, 100 % de réussite ([détail](docs/EVALUATION.md)) |
+| Évaluation sur le vrai pipeline | 55 / 55 cas réussis au 21 octobre 2026 ([détail](docs/EVALUATION.md)) |
 | Injections de prompt | 9 / 9 bloquées (français, anglais, arabe, darija) |
 | Accès interdits (RBAC) | 7 / 7 refusés, 8 rôles métier |
 | Tests automatisés | 229 tests, CI GitHub Actions avec analyse de secrets (gitleaks) |
