@@ -74,13 +74,13 @@ def setup_directories():
         metadata_dir = company_dir / "metadata"
         metadata_dir.mkdir(parents=True, exist_ok=True)
     
-    logger.info("✅ Structure de dossiers créée")
+    logger.info("Structure de dossiers créée")
     return base_dir
 
 def download_pdf(url: str, output_path: Path, company: str, year: int) -> Optional[Dict]:
     """Télécharge un PDF avec gestion d'erreurs"""
     try:
-        logger.info(f"📥 Téléchargement de {company} ({year})...")
+        logger.info(f"Téléchargement de {company} ({year})...")
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -97,7 +97,7 @@ def download_pdf(url: str, output_path: Path, company: str, year: int) -> Option
         
         output_path.write_bytes(content)
         
-        logger.info(f"✅ Téléchargé: {output_path.name} ({file_size:.2f} MB)")
+        logger.info(f"Téléchargé: {output_path.name} ({file_size:.2f} MB)")
         
         return {
             "file_path": str(output_path),
@@ -108,7 +108,7 @@ def download_pdf(url: str, output_path: Path, company: str, year: int) -> Option
         }
         
     except Exception as e:
-        logger.error(f"❌ Erreur téléchargement {company}: {str(e)}")
+        logger.error(f"Erreur téléchargement {company}: {str(e)}")
         return None
 
 def save_metadata(company: str, year: int, metadata: Dict):
@@ -126,7 +126,7 @@ def save_metadata(company: str, year: int, metadata: Dict):
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     
-    logger.info(f"📝 Métadonnées sauvegardées pour {company} ({year})")
+    logger.info(f"Métadonnées sauvegardées pour {company} ({year})")
 
 def download_all_reports():
     """Télécharge tous les rapports en parallèle"""
@@ -168,11 +168,11 @@ def download_all_reports():
                 results.append(result)
     
     logger.info("\n" + "="*50)
-    logger.info("📊 RÉSUMÉ DU TÉLÉCHARGEMENT")
+    logger.info("RÉSUMÉ DU TÉLÉCHARGEMENT")
     logger.info("="*50)
     logger.info(f"Total: {len(AMMC_DOCUMENTS)} documents")
-    logger.info(f"✅ Réussis: {len(results)}")
-    logger.info(f"❌ Échoués: {len(AMMC_DOCUMENTS) - len(results)}")
+    logger.info(f"Réussis: {len(results)}")
+    logger.info(f"Échoués: {len(AMMC_DOCUMENTS) - len(results)}")
     
     summary = {
         "download_date": datetime.utcnow().isoformat(),
@@ -187,6 +187,6 @@ def download_all_reports():
     return results
 
 if __name__ == "__main__":
-    print("🚀 Téléchargement des rapports AMMC")
+    print("Téléchargement des rapports AMMC")
     print("="*50)
     download_all_reports()
