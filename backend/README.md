@@ -7,15 +7,14 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![Azure Bicep](https://img.shields.io/badge/Azure-Bicep-0078D4?logo=microsoftazure&logoColor=white)
-![CI](https://github.com/houdamardas1/fluxa-backend/actions/workflows/ci.yml/badge.svg)
 
 Fluxa répond aux questions des collaborateurs d'une entreprise à partir de ses
 propres documents, **en respectant qui a le droit de voir quoi**. Chaque réponse
 cite ses sources, chaque accès est tracé, et une question hors périmètre ou
 malveillante est refusée plutôt qu'inventée.
 
-Ce dépôt contient le **backend** (API, moteur RAG, sécurité, audit). L'interface
-web est dans le dépôt [fluxa-frontend](https://github.com/houdamardas1/fluxa-frontend).
+Ce dossier contient le **backend** (API, moteur RAG, sécurité, audit). L'interface
+web est dans [`../frontend`](../frontend).
 
 > Conçu et développé par **[Houda Mardas](#auteure)**, AI Engineer, pendant son stage
 > chez Alexsys Solutions (Casablanca, 2026).
@@ -37,7 +36,7 @@ web est dans le dépôt [fluxa-frontend](https://github.com/houdamardas1/fluxa-f
 - **Backend** : Python 3.11, FastAPI, Pydantic, JWT, traitement asynchrone
 - **Données** : PostgreSQL (audit), SQLite (comptes), ingestion PDF / DOCX / XLSX / PPTX
 - **DevOps** : Docker, Docker Compose, GitHub Actions, gitleaks, Azure Container Apps, Key Vault, Bicep
-- **Frontend** ([dépôt séparé](https://github.com/houdamardas1/fluxa-frontend)) : React, TypeScript, Vite, Tailwind
+- **Frontend** ([`../frontend`](../frontend)) : React, TypeScript, Vite, Tailwind
 
 ## Ce que fait la plateforme
 

@@ -4,14 +4,13 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
-![CI](https://github.com/houdamardas1/fluxa-frontend/actions/workflows/ci.yml/badge.svg)
 
 Interface web de **Fluxa**, un assistant documentaire IA sécurisé (RAG) qui répond aux
 questions des collaborateurs d'une entreprise à partir de ses propres documents, avec
 citation des sources, contrôle d'accès par rôle et journal d'audit.
 
-Toutes les données viennent de l'API FastAPI du dépôt
-[fluxa-backend](https://github.com/houdamardas1/fluxa-backend), qui contient aussi le moteur
+Toutes les données viennent de l'API FastAPI du dossier
+[`../backend`](../backend), qui contient aussi le moteur
 RAG, l'architecture, l'évaluation et le scénario de démonstration.
 
 > Conçu et développé par **[Houda Mardas](#auteure)**, AI Engineer, pendant son stage
@@ -47,7 +46,7 @@ Le backend doit tourner :
 
     python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
-ou, avec Docker, `docker compose up -d --build` dans le dépôt backend (l'interface
+ou, avec Docker, `docker compose up -d --build` dans le dossier `backend/` (l'interface
 est alors servie sur http://localhost:3000).
 
 ## Structure
