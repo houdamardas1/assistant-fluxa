@@ -79,6 +79,7 @@ corpus brut et l'index ne sont pas versionnés.
 
 ## Documentation
 
+- [Vidéo de démonstration (1 min)](docs/demo_linkedin.mp4)
 - [Scénario de démonstration](backend/docs/DEMO.md)
 - [Évaluation du RAG](backend/docs/EVALUATION.md)
 - [Environnements dev / staging / prod](backend/docs/ENVIRONNEMENTS.md)
