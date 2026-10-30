@@ -16,6 +16,12 @@ documents, **en respectant qui a le droit de voir quoi**. Chaque réponse cite s
 chaque accès est tracé, et une question hors périmètre ou malveillante est refusée plutôt
 qu'inventée.
 
+### 🎬 Démo en vidéo (1 min)
+
+[![Voir la démo vidéo d'Assistant Fluxa](docs/demo_miniature.png)](docs/demo_linkedin.mp4)
+
+▶️ [Regarder la vidéo de démonstration](docs/demo_linkedin.mp4)
+
 > Conçu et développé par **[Houda Mardas](#auteure)**, AI Engineer, pendant son stage chez
 > Alexsys Solutions (Casablanca, 2026).
 
